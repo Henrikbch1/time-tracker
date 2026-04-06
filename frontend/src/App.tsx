@@ -1,120 +1,240 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect, useState } from 'react'
+import { HistoryPanel } from './components/HistoryPanel'
+import { ThemeToggle } from './components/ThemeToggle'
+import { TrackerCard } from './components/TrackerCard'
+import { useInterval } from './hooks/useInterval'
+import {
+  clearActiveSession,
+  limitHistoryEntries,
+  readActiveSession,
+  readHistory,
+  readTheme,
+  type ActiveSession,
+  type HistoryEntry,
+  type ThemeMode,
+  writeActiveSession,
+  writeHistory,
+  writeTheme,
+} from './utils/cookies'
+import { downloadHistory } from './utils/export'
+import { formatDateTime, formatDuration, getElapsedDuration } from './utils/time'
+
+const DAY_IN_MS = 86_400_000
+
+function getSystemTheme(): ThemeMode {
+  if (typeof window === 'undefined') {
+    return 'dark'
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function getInitialState() {
+  const restoredSession = readActiveSession()
+
+  return {
+    theme: readTheme() ?? getSystemTheme(),
+    taskName: restoredSession?.taskName ?? '',
+    activeSession: restoredSession,
+    history: readHistory(),
+    now: Date.now(),
+  }
+}
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [initialState] = useState(getInitialState)
+  const [theme, setTheme] = useState<ThemeMode>(initialState.theme)
+  const [taskName, setTaskName] = useState(initialState.taskName)
+  const [activeSession, setActiveSession] = useState<ActiveSession | null>(initialState.activeSession)
+  const [history, setHistory] = useState<HistoryEntry[]>(initialState.history)
+  const [now, setNow] = useState(initialState.now)
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+    document.documentElement.style.colorScheme = theme
+
+    writeTheme(theme)
+  }, [theme])
+
+  useEffect(() => {
+    if (activeSession) {
+      writeActiveSession(activeSession)
+      return
+    }
+
+    clearActiveSession()
+  }, [activeSession])
+
+  useEffect(() => {
+    writeHistory(history)
+  }, [history])
+
+  useInterval(
+    () => {
+      setNow(Date.now())
+    },
+    activeSession ? 250 : null,
+  )
+
+  const elapsedMs = activeSession ? getElapsedDuration(activeSession.startTimestamp, now) : 0
+  const totalTrackedMs = history.reduce((total, entry) => total + entry.durationMs, 0)
+  const completedToday = history.filter(
+    (entry) => now - entry.endTimestamp >= 0 && now - entry.endTimestamp < DAY_IN_MS,
+  ).length
+  const latestEntry = history[0] ?? null
+
+  const handleStart = () => {
+    const normalizedTaskName = taskName.trim()
+
+    if (!normalizedTaskName) {
+      return
+    }
+
+    const startTimestamp = Date.now()
+    setTaskName(normalizedTaskName)
+    setNow(startTimestamp)
+    setActiveSession({
+      taskName: normalizedTaskName,
+      startTimestamp,
+    })
+  }
+
+  const handleStop = () => {
+    if (!activeSession) {
+      return
+    }
+
+    const endTimestamp = Date.now()
+    const nextEntry: HistoryEntry = {
+      id: `${activeSession.startTimestamp}-${endTimestamp}`,
+      taskName: activeSession.taskName,
+      startTimestamp: activeSession.startTimestamp,
+      endTimestamp,
+      durationMs: getElapsedDuration(activeSession.startTimestamp, endTimestamp),
+    }
+
+    setHistory((currentHistory) => limitHistoryEntries([nextEntry, ...currentHistory]))
+    setActiveSession(null)
+    setTaskName('')
+    setNow(endTimestamp)
+  }
+
+  const handleExport = () => {
+    if (history.length === 0) {
+      return
+    }
+
+    downloadHistory(history)
+  }
+
+  const handleClearHistory = () => {
+    if (history.length === 0) {
+      return
+    }
+
+    const confirmed = window.confirm('Delete the full Hookie history from this browser?')
+
+    if (!confirmed) {
+      return
+    }
+
+    setHistory([])
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="relative isolate overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.30),transparent_58%)] dark:bg-[radial-gradient(circle_at_top,rgba(34,197,94,0.16),transparent_52%)]" />
+      <div className="pointer-events-none absolute left-[-8rem] top-36 h-80 w-80 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-500/10" />
+      <div className="pointer-events-none absolute right-[-6rem] top-24 h-96 w-96 rounded-full bg-fuchsia-400/20 blur-3xl dark:bg-fuchsia-500/10" />
 
-      <div className="ticks"></div>
+      <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
+        <header className="surface mb-6 flex flex-col gap-6 px-6 py-6 sm:px-8 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="eyebrow">Browser-native time tracking</p>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <span className="display-face text-4xl font-semibold tracking-[-0.08em] text-slate-950 dark:text-white sm:text-5xl">
+                Hookie
+              </span>
+              <span className="rounded-full border border-slate-300/70 bg-white/65 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500 dark:border-white/10 dark:bg-white/6 dark:text-slate-300">
+                Cookie state
+              </span>
+            </div>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-slate-600 dark:text-slate-300">
+              Track one task at a time, recover instantly after refresh, and keep an
+              exportable local history without leaving the browser.
+            </p>
+          </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          <div className="flex flex-col items-start gap-4 lg:items-end">
+            <ThemeToggle mode={theme} onToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')} />
+            <div className="surface-muted w-full min-w-72 px-4 py-4 text-left lg:max-w-sm">
+              <p className="mono-face text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
+                Last completed
+              </p>
+              <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
+                {latestEntry ? latestEntry.taskName : 'No completed sessions yet'}
+              </p>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                {latestEntry
+                  ? `${formatDuration(latestEntry.durationMs)} finished at ${formatDateTime(latestEntry.endTimestamp)}`
+                  : 'Start your first task to build up a lightweight personal timeline.'}
+              </p>
+            </div>
+          </div>
+        </header>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+          <TrackerCard
+            taskName={taskName}
+            isRunning={Boolean(activeSession)}
+            elapsedMs={elapsedMs}
+            startTimestamp={activeSession?.startTimestamp}
+            onTaskNameChange={setTaskName}
+            onStart={handleStart}
+            onStop={handleStop}
+          />
+
+          <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
+            <article className="stat-tile">
+              <p className="eyebrow">Completed sessions</p>
+              <p className="display-face mt-5 text-4xl font-semibold text-slate-950 dark:text-white">
+                {history.length}
+              </p>
+              <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                Hookie keeps the newest entries in cookies so refresh recovery stays fast.
+              </p>
+            </article>
+
+            <article className="stat-tile">
+              <p className="eyebrow">Tracked time</p>
+              <p className="display-face mt-5 text-4xl font-semibold text-slate-950 dark:text-white">
+                {formatDuration(totalTrackedMs)}
+              </p>
+              <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                Total across completed tasks in the current browser profile.
+              </p>
+            </article>
+
+            <article className="stat-tile">
+              <p className="eyebrow">Closed today</p>
+              <p className="display-face mt-5 text-4xl font-semibold text-slate-950 dark:text-white">
+                {completedToday}
+              </p>
+              <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                A quick signal for momentum without introducing extra dashboards.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <HistoryPanel
+          history={history}
+          totalTrackedMs={totalTrackedMs}
+          onExport={handleExport}
+          onClear={handleClearHistory}
+        />
+      </main>
+    </div>
   )
 }
 
