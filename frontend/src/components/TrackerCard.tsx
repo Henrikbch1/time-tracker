@@ -1,6 +1,6 @@
 import { formatDateTime, formatDuration } from '../utils/time'
 import t from '../i18n'
-import type { Language } from '../utils/cookies'
+import type { Language, Tag } from '../utils/cookies'
 
 interface TrackerCardProps {
   taskName: string
@@ -10,6 +10,9 @@ interface TrackerCardProps {
   onTaskNameChange: (value: string) => void
   onStart: () => void
   onStop: () => void
+  tags: Tag[]
+  selectedTagId: string | null
+  onSelectTag: (tagId: string | null) => void
   language: Language
 }
 
@@ -21,6 +24,9 @@ export function TrackerCard({
   onTaskNameChange,
   onStart,
   onStop,
+  tags,
+  selectedTagId,
+  onSelectTag,
   language,
 }: TrackerCardProps) {
   return (
@@ -36,7 +42,7 @@ export function TrackerCard({
           </p>
         </div>
 
-        <div className="surface-muted min-w-56 px-4 py-4 text-left">
+        <div className="surface-muted min-w-0 w-full lg:min-w-56 px-4 py-4 text-left">
           <p className="eyebrow">{t('currentDuration', language)}</p>
           <p className="mono-face mt-3 text-4xl font-medium text-slate-950 dark:text-white sm:text-5xl">
             {formatDuration(elapsedMs)}
@@ -57,8 +63,25 @@ export function TrackerCard({
             onChange={(event) => onTaskNameChange(event.target.value)}
             disabled={isRunning}
             placeholder={t('placeholderTask', language)}
-            className="mt-3 w-full rounded-[1.5rem] border border-slate-300/70 bg-white/85 px-5 py-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-200 dark:border-white/10 dark:bg-white/6 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-white/25 dark:focus:ring-white/10"
+            className="mt-3 w-full rounded-[1.5rem] border border-slate-300/70 bg-white/85 px-5 py-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-200 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-white/25 dark:focus:ring-white/10"
           />
+        </label>
+
+        <label className="block text-left">
+          <span className="eyebrow mt-4 block">{t('tagLabel', language)}</span>
+          <select
+            value={selectedTagId ?? ''}
+            onChange={(e) => onSelectTag(e.target.value === '' ? null : e.target.value)}
+            disabled={isRunning}
+            className="mt-3 w-full rounded-[1.5rem] border border-slate-300/70 bg-white/85 px-4 py-3 text-base text-slate-900 outline-none dark:border-white/20 dark:bg-slate-800 dark:text-slate-100"
+          >
+            <option value="">{t('noTag', language)}</option>
+            {tags.map((tag) => (
+              <option key={tag.id} value={tag.id}>
+                {tag.name}
+              </option>
+            ))}
+          </select>
         </label>
 
         <div className="flex flex-wrap gap-3 lg:justify-end">
@@ -66,7 +89,7 @@ export function TrackerCard({
             type="button"
             onClick={onStart}
             disabled={isRunning || taskName.trim().length === 0}
-            className="primary-button min-w-36"
+            className="primary-button w-full sm:w-auto"
           >
             {t('startTimer', language)}
           </button>
@@ -74,7 +97,7 @@ export function TrackerCard({
             type="button"
             onClick={onStop}
             disabled={!isRunning}
-            className="action-button min-w-36 disabled:cursor-not-allowed disabled:opacity-55"
+            className="action-button w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-55"
           >
             {t('stopAndSave', language)}
           </button>

@@ -1,4 +1,4 @@
-import { type HistoryEntry } from '../utils/cookies'
+import { type HistoryEntry, type Tag } from '../utils/cookies'
 import { formatDateTime, formatDuration, formatShortDate, formatTime } from '../utils/time'
 import t from '../i18n'
 import type { Language } from '../utils/cookies'
@@ -6,12 +6,13 @@ import type { Language } from '../utils/cookies'
 interface HistoryPanelProps {
   history: HistoryEntry[]
   totalTrackedMs: number
+  tags?: Tag[]
   onExport: () => void
   onClear: () => void
   language: Language
 }
 
-export function HistoryPanel({ history, totalTrackedMs, onExport, onClear, language }: HistoryPanelProps) {
+export function HistoryPanel({ history, totalTrackedMs, tags = [], onExport, onClear, language }: HistoryPanelProps) {
   return (
     <section className="surface mt-6 px-6 py-6 sm:px-8 sm:py-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -67,8 +68,21 @@ export function HistoryPanel({ history, totalTrackedMs, onExport, onClear, langu
           {history.map((entry) => (
             <li key={entry.id} className="surface-muted grid gap-4 px-5 py-5 lg:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,0.8fr))] lg:items-center">
               <div>
-                <p className="display-face text-xl font-semibold text-slate-950 dark:text-white">
+                <p className="display-face text-xl font-semibold text-slate-950 dark:text-white flex items-center gap-3">
                   {entry.taskName}
+                  {entry.tagId ? (
+                    <span className="ml-2 inline-flex items-center gap-2 rounded px-2 py-1 text-xs font-medium" style={{ border: '1px solid rgba(0,0,0,0.06)' }}>
+                      {(() => {
+                        const tag = tags.find((t) => t.id === entry.tagId)
+                        return (
+                          <>
+                            <span style={{ width: 10, height: 10, background: tag?.color ?? 'transparent' }} className="inline-block rounded-full" />
+                            <span>{tag?.name ?? '(deleted)'}</span>
+                          </>
+                        )
+                      })()}
+                    </span>
+                  ) : null}
                 </p>
                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
                   {t('finishedAt', language)} {formatDateTime(entry.endTimestamp)}

@@ -3,6 +3,8 @@ import Cookies from 'js-cookie'
 export interface ActiveSession {
   taskName: string
   startTimestamp: number
+  // optional tag id assigned when the session was started
+  tagId?: string
 }
 
 export interface HistoryEntry {
@@ -11,6 +13,8 @@ export interface HistoryEntry {
   startTimestamp: number
   endTimestamp: number
   durationMs: number
+  // optional tag id for this entry
+  tagId?: string
 }
 
 export type ThemeMode = 'light' | 'dark'
@@ -27,6 +31,14 @@ const COOKIE_WRITE_OPTIONS = {
 }
 const COOKIE_REMOVE_OPTIONS = {
   path: COOKIE_PATH,
+}
+
+const TAGS_COOKIE = 'hookie.tags'
+
+export interface Tag {
+  id: string
+  name: string
+  color?: string
 }
 
 function safeParseJson<T>(value: string | undefined) {
@@ -60,6 +72,8 @@ function isActiveSession(value: unknown): value is ActiveSession {
     typeof candidate.taskName === 'string' &&
     candidate.taskName.trim().length > 0 &&
     isFiniteNumber(candidate.startTimestamp)
+    // tagId is optional and if present should be a string
+    // (no further validation here)
   )
 }
 
@@ -77,6 +91,7 @@ function isHistoryEntry(value: unknown): value is HistoryEntry {
     isFiniteNumber(candidate.startTimestamp) &&
     isFiniteNumber(candidate.endTimestamp) &&
     isFiniteNumber(candidate.durationMs)
+    // tagId is optional
   )
 }
 
@@ -126,6 +141,26 @@ export function readHistory() {
   }
 
   return parsedHistory.filter(isHistoryEntry)
+}
+
+export function readTags() {
+  const parsed = safeParseJson<unknown>(Cookies.get(TAGS_COOKIE))
+
+  if (!Array.isArray(parsed)) {
+    return [] as Tag[]
+  }
+
+  // basic validation
+  return parsed.filter((t) => t && typeof t === 'object' && typeof (t as any).id === 'string' && typeof (t as any).name === 'string') as Tag[]
+}
+
+export function writeTags(tags: Tag[]) {
+  if (!tags || tags.length === 0) {
+    Cookies.remove(TAGS_COOKIE, COOKIE_REMOVE_OPTIONS)
+    return
+  }
+
+  Cookies.set(TAGS_COOKIE, JSON.stringify(tags), COOKIE_WRITE_OPTIONS)
 }
 
 export function writeHistory(history: HistoryEntry[]) {

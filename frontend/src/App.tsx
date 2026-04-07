@@ -1,21 +1,26 @@
 import { useEffect, useState } from 'react'
 import { HistoryPanel } from './components/HistoryPanel'
-import { ThemeToggle } from './components/ThemeToggle'
-import LanguageToggle from './components/LanguageToggle'
+// Theme and language toggles moved to Settings
 import { TrackerCard } from './components/TrackerCard'
+import TagsManager from './components/TagsManager'
+import TagSummary from './components/TagSummary'
+import Settings from './components/Settings'
 import { useInterval } from './hooks/useInterval'
 import {
   clearActiveSession,
   limitHistoryEntries,
   readActiveSession,
   readHistory,
+  readTags,
   readTheme,
   type ActiveSession,
   type HistoryEntry,
+  type Tag,
   type ThemeMode,
   writeActiveSession,
   writeHistory,
   writeTheme,
+  writeTags,
   readLanguage,
   writeLanguage,
 } from './utils/cookies'
@@ -42,6 +47,7 @@ function getInitialState() {
     taskName: restoredSession?.taskName ?? '',
     activeSession: restoredSession,
     history: readHistory(),
+    tags: readTags(),
     now: Date.now(),
   }
 }
@@ -53,7 +59,10 @@ function App() {
   const [taskName, setTaskName] = useState(initialState.taskName)
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(initialState.activeSession)
   const [history, setHistory] = useState<HistoryEntry[]>(initialState.history)
+  const [tags, setTags] = useState<Tag[]>(initialState.tags ?? [])
+  const [selectedTagId, setSelectedTagId] = useState<string | null>(null)
   const [now, setNow] = useState(initialState.now)
+  const [route, setRoute] = useState<string>(typeof window !== 'undefined' && window.location.pathname === '/settings' ? 'settings' : 'home')
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
@@ -80,6 +89,10 @@ function App() {
   }, [activeSession])
 
   useEffect(() => {
+    writeTags(tags)
+  }, [tags])
+
+  useEffect(() => {
     writeHistory(history)
   }, [history])
 
@@ -90,8 +103,41 @@ function App() {
     activeSession ? 250 : null,
   )
 
+  // Navigation handlers: support /settings deep-link
+  const openSettings = () => {
+    setRoute('settings')
+    try {
+      window.history.pushState({}, '', '/settings')
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  const closeSettings = () => {
+    setRoute('home')
+    try {
+      window.history.pushState({}, '', '/')
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  // handle browser back/forward
+  useEffect(() => {
+    const onPop = () => setRoute(window.location.pathname === '/settings' ? 'settings' : 'home')
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
   const elapsedMs = activeSession ? getElapsedDuration(activeSession.startTimestamp, now) : 0
   const totalTrackedMs = history.reduce((total, entry) => total + entry.durationMs, 0)
+  const totalsByTag = history.reduce((map: Record<string, number>, entry) => {
+    if (entry.tagId) {
+      map[entry.tagId] = (map[entry.tagId] || 0) + entry.durationMs
+    }
+
+    return map
+  }, {})
   const completedToday = history.filter(
     (entry) => now - entry.endTimestamp >= 0 && now - entry.endTimestamp < DAY_IN_MS,
   ).length
@@ -110,6 +156,7 @@ function App() {
     setActiveSession({
       taskName: normalizedTaskName,
       startTimestamp,
+      tagId: selectedTagId ?? undefined,
     })
   }
 
@@ -125,6 +172,7 @@ function App() {
       startTimestamp: activeSession.startTimestamp,
       endTimestamp,
       durationMs: getElapsedDuration(activeSession.startTimestamp, endTimestamp),
+      tagId: activeSession.tagId,
     }
 
     setHistory((currentHistory) => limitHistoryEntries([nextEntry, ...currentHistory]))
@@ -138,7 +186,7 @@ function App() {
       return
     }
 
-    downloadHistory(history)
+    downloadHistory(history, tags)
   }
 
   const handleClearHistory = () => {
@@ -153,6 +201,16 @@ function App() {
     }
 
     setHistory([])
+  }
+
+  if (route === 'settings') {
+    return (
+      <div className="relative isolate overflow-hidden">
+        <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
+          <Settings theme={theme} setTheme={(m) => setTheme(m)} language={language} setLanguage={(l) => setLanguage(l)} tags={tags} setTags={setTags} onClose={closeSettings} />
+        </main>
+      </div>
+    )
   }
 
   return (
@@ -180,8 +238,9 @@ function App() {
 
           <div className="flex flex-col items-start gap-4 lg:items-end">
             <div className="flex gap-3">
-              <ThemeToggle mode={theme} onToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')} language={language} />
-              <LanguageToggle language={language} onToggle={() => setLanguage(language === 'en' ? 'de' : 'en')} />
+              <button type="button" onClick={openSettings} className="action-button">
+                {t('settings', language)}
+              </button>
             </div>
             <div className="surface-muted w-full min-w-72 px-4 py-4 text-left lg:max-w-sm">
               <p className="mono-face text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
@@ -208,6 +267,9 @@ function App() {
             onTaskNameChange={setTaskName}
             onStart={handleStart}
             onStop={handleStop}
+            tags={tags}
+            selectedTagId={selectedTagId}
+            onSelectTag={setSelectedTagId}
             language={language}
           />
 
@@ -242,11 +304,13 @@ function App() {
               </p>
             </article>
           </div>
+          <TagSummary tags={tags} totalsByTag={totalsByTag} language={language} />
         </section>
 
         <HistoryPanel
           history={history}
           totalTrackedMs={totalTrackedMs}
+          tags={tags}
           onExport={handleExport}
           onClear={handleClearHistory}
           language={language}
