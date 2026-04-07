@@ -1,4 +1,5 @@
 import { formatDuration } from '../utils/time'
+import { formatLocalYMD } from '../utils/date'
 import type { HistoryEntry, ActiveSession, Language } from '../utils/cookies'
 import t from '../i18n'
 
@@ -25,8 +26,7 @@ export default function TimeByDay({ history, now = Date.now(), language, activeS
   for (const entry of history) {
     if (entry.endTimestamp > now) continue
 
-    const d = new Date(entry.endTimestamp)
-    const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString().slice(0, 10)
+    const key = formatLocalYMD(entry.endTimestamp)
     dayMs[key] = (dayMs[key] || 0) + entry.durationMs
   }
 
@@ -39,7 +39,7 @@ export default function TimeByDay({ history, now = Date.now(), language, activeS
   const daysArr = [...Array(7)].map((_, i) => {
     const d = new Date(monday)
     d.setDate(monday.getDate() + i)
-    const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString().slice(0, 10)
+    const key = formatLocalYMD(d.getTime())
     const dayKey = ['mon','tue','wed','thu','fri','sat','sun'][i] as 'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun'
     const workHours = (workdays && (workdays as any)[dayKey]) ?? 0
     return { key, ts: d.getTime(), ms: dayMs[key] || 0, dayKey, workHours }
@@ -47,9 +47,9 @@ export default function TimeByDay({ history, now = Date.now(), language, activeS
 
   // add active session elapsed time to today's bucket if it exists
   if (activeSession) {
-    const activeDateKey = new Date(activeSession.startTimestamp).toISOString().slice(0, 10)
+    const activeDateKey = formatLocalYMD(activeSession.startTimestamp)
     const todayIndex = (new Date(now).getDay() + 6) % 7
-    const todayKey = new Date(daysArr[todayIndex].ts).toISOString().slice(0, 10)
+    const todayKey = formatLocalYMD(daysArr[todayIndex].ts)
     // if active session started today only add to today's bucket
     if (activeDateKey === todayKey) {
       daysArr[todayIndex].ms += elapsedMs || 0
@@ -75,6 +75,16 @@ export default function TimeByDay({ history, now = Date.now(), language, activeS
     t('dayShortSat', language ?? 'en'),
     t('dayShortSun', language ?? 'en'),
   ]
+
+  const labelMap: Record<'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun', string> = {
+    mon: t('dayShortMon', language ?? 'en'),
+    tue: t('dayShortTue', language ?? 'en'),
+    wed: t('dayShortWed', language ?? 'en'),
+    thu: t('dayShortThu', language ?? 'en'),
+    fri: t('dayShortFri', language ?? 'en'),
+    sat: t('dayShortSat', language ?? 'en'),
+    sun: t('dayShortSun', language ?? 'en'),
+  }
 
   return (
     <article className="stat-tile">
@@ -102,7 +112,7 @@ export default function TimeByDay({ history, now = Date.now(), language, activeS
                   <div style={{ position: 'absolute', bottom: `${targetHeight}px`, left: '50%', transform: 'translateX(-50%)', width: '100%', height: 2, background: 'rgba(255,255,255,0.9)', opacity: 0.9 }} aria-hidden />
                 ) : null}
               </div>
-              <div className="mt-3 text-sm font-medium leading-5 text-slate-700 dark:text-slate-200">{labels[idx]}</div>
+              <div className="mt-3 text-sm font-medium leading-5 text-slate-700 dark:text-slate-200">{labelMap[d.dayKey]}</div>
               <div className="mt-1 text-center text-xs leading-5 text-slate-600 dark:text-slate-300">
                 <span className="block">{formatDuration(d.ms)}</span>
                 {targetMs > 0 ? <span className="block">{percent}%</span> : null}
