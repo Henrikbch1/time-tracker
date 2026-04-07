@@ -1,4 +1,3 @@
-import React from 'react'
 import { formatDuration } from '../utils/time'
 
 type Props = {
