@@ -127,14 +127,18 @@ export default function Settings({ theme, setTheme, language, setLanguage, tags,
       <section className="surface mb-4 p-4">
         <p className="eyebrow">{t('workGoalSection', language)}</p>
         <div className="mt-4 flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <label className="text-sm">{t('dailyGoalLabel', language)}</label>
-            <input type="number" min={0} max={24} value={goalHours} onChange={(e) => setGoalHours(Number(e.target.value) || 0)} className="w-20 rounded px-2 py-1" />
-            <span className="text-sm text-slate-600">{t('hours', language)}</span>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium">{t('dailyGoalLabel', language)}</label>
+              <input type="number" min={0} max={24} value={goalHours} onChange={(e) => setGoalHours(Number(e.target.value) || 0)} className="w-20 rounded px-2 py-1" />
+              <span className="text-sm text-slate-600">{t('hours', language)}</span>
+            </div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">{t('dailyGoalHelp', language)}</div>
           </div>
 
           <div>
-            <p className="text-sm text-slate-600">{t('workdaysLabel', language)}</p>
+            <p className="text-sm font-medium">{t('workdaysLabel', language)}</p>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('workdaysHelp', language)}</div>
             <div className="mt-2 grid grid-cols-7 gap-2">
               {['mon','tue','wed','thu','fri','sat','sun'].map((k, i) => (
                 <div key={k} className="flex flex-col items-center">
