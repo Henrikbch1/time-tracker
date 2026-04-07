@@ -66,16 +66,16 @@ select {
   }
 
   .surface-muted {
-    @apply rounded-[1.5rem] border border-white/45 bg-white/55 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.04];
+    @apply rounded-[1.75rem] border border-white/45 bg-white/60 shadow-lg shadow-slate-900/5 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.05] dark:shadow-black/10;
   }
 
   .eyebrow {
-    @apply text-[0.68rem] font-medium uppercase tracking-[0.32em] text-slate-500 dark:text-slate-400;
+    @apply text-[0.72rem] font-medium uppercase tracking-[0.24em] leading-6 text-slate-500 dark:text-slate-400;
     font-family: var(--font-mono);
   }
 
   .stat-tile {
-    @apply rounded-[2rem] border border-white/55 bg-white/75 px-5 py-5 text-left shadow-2xl shadow-slate-900/10 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.05] dark:shadow-black/[0.35];
+    @apply rounded-[2rem] border border-white/55 bg-white/80 px-6 py-6 text-left shadow-2xl shadow-slate-900/10 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.06] dark:shadow-black/[0.35] sm:px-7 sm:py-6;
   }
 
   .action-button {

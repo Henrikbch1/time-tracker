@@ -24,19 +24,19 @@ export default function TagSummary({ tags, totalsByTag, language }: Props) {
   return (
     <article className="stat-tile">
       <p className="eyebrow">{t('tagsSummary', language)}</p>
-      <div className="mt-4 flex flex-col gap-2">
+      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {tagIds.map((id) => {
           const tag = tags.find((t) => t.id === id)
           return (
-            <div key={id} className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+            <div key={id} className="surface-muted flex items-center justify-between gap-4 px-4 py-3">
+              <div className="flex min-w-0 items-center gap-3">
                 <span
                   style={{ background: tag?.color ?? 'transparent' }}
-                  className="inline-block w-3 h-3 rounded-full border border-slate-200 dark:border-white/10"
+                  className="inline-block h-3 w-3 shrink-0 rounded-full border border-slate-200 dark:border-white/10"
                 />
-                <span className="text-sm font-medium">{tag?.name ?? '(deleted)'}</span>
+                <span className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">{tag?.name ?? t('deletedLabel', language)}</span>
               </div>
-              <div className="text-sm">{formatDuration(totalsByTag[id])}</div>
+              <div className="shrink-0 text-sm text-slate-700 dark:text-slate-200">{formatDuration(totalsByTag[id])}</div>
             </div>
           )
         })}
