@@ -48,7 +48,7 @@ export default function Settings({ theme, setTheme, language, setLanguage, tags,
         </div>
       </section>
 
-      <section className="surface p-4">
+      <section className="surface mb-4 p-4">
         <p className="eyebrow">{t('tagsSection', language)}</p>
         <div className="mt-4 flex flex-col gap-3">
           <input
