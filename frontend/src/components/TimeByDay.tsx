@@ -79,7 +79,7 @@ export default function TimeByDay({ history, now = Date.now(), language, activeS
   return (
     <article className="stat-tile">
       <p className="eyebrow">{t('timePerDayWeek', language ?? 'en')}</p>
-      <div className="mt-3 flex gap-3 items-end justify-center w-full">
+      <div className="mt-5 grid w-full grid-flow-col auto-cols-[minmax(4.75rem,1fr)] gap-3 overflow-x-auto pb-2 sm:gap-4">
         {displayedDays.map((d, idx) => {
           const targetHours = d.workHours ?? 0
           const targetMs = targetHours * 3_600_000
@@ -88,24 +88,30 @@ export default function TimeByDay({ history, now = Date.now(), language, activeS
           const percent = targetMs > 0 ? Math.round((d.ms / targetMs) * 100) : 0
 
           return (
-            <div key={d.key} className="flex flex-col items-center" style={{ width: 40 }}>
-              <div title={`${formatDuration(d.ms)}`} style={{ height: 80, display: 'flex', alignItems: 'flex-end', position: 'relative' }}>
+            <div key={d.key} className="flex min-w-[4.75rem] flex-col items-center">
+              <div
+                title={`${formatDuration(d.ms)}`}
+                style={{ height: 132, display: 'flex', alignItems: 'flex-end', position: 'relative', width: '100%' }}
+              >
                 {/* target background bar */}
-                <div style={{ width: 28, height: `${targetHeight}px`, background: 'rgba(148,163,184,0.12)', borderRadius: 4, position: 'absolute', bottom: 0 }} aria-hidden />
+                <div style={{ width: '100%', height: `${targetHeight}px`, background: 'rgba(148,163,184,0.14)', borderRadius: 12, position: 'absolute', bottom: 0 }} aria-hidden />
                 {/* achieved fill */}
-                <div style={{ width: 28, height: `${achievedHeight}px`, background: progressGradient(percent), borderRadius: 4, position: 'relative' }} />
+                <div style={{ width: '100%', height: `${achievedHeight}px`, background: progressGradient(percent), borderRadius: 12, position: 'relative' }} />
                 {/* small target line indicator */}
                 {targetMs > 0 ? (
-                  <div style={{ position: 'absolute', bottom: `${targetHeight}px`, left: 6, width: 28, height: 2, background: 'rgba(255,255,255,0.9)', opacity: 0.9 }} aria-hidden />
+                  <div style={{ position: 'absolute', bottom: `${targetHeight}px`, left: '50%', transform: 'translateX(-50%)', width: '100%', height: 2, background: 'rgba(255,255,255,0.9)', opacity: 0.9 }} aria-hidden />
                 ) : null}
               </div>
-              <div className="text-xs text-slate-600 dark:text-slate-300 mt-2">{labels[idx]}</div>
-              <div className="text-[10px] text-slate-700 dark:text-slate-200 mt-1">{formatDuration(d.ms)}{targetMs>0 ? ` • ${percent}%` : ''}</div>
+              <div className="mt-3 text-sm font-medium leading-5 text-slate-700 dark:text-slate-200">{labels[idx]}</div>
+              <div className="mt-1 text-center text-xs leading-5 text-slate-600 dark:text-slate-300">
+                <span className="block">{formatDuration(d.ms)}</span>
+                {targetMs > 0 ? <span className="block">{percent}%</span> : null}
+              </div>
             </div>
           )
         })}
       </div>
-      <div className="mt-3 text-xs text-slate-600 dark:text-slate-300 w-full text-center">{t('monToSun', language ?? 'en')}</div>
+      <div className="mt-4 w-full text-center text-sm leading-6 text-slate-600 dark:text-slate-300">{t('monToSun', language ?? 'en')}</div>
     </article>
   )
 }

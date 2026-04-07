@@ -75,8 +75,8 @@ export default function PieByTask({ totalsByTask, totalMs, size = 220, language 
   return (
     <article className="stat-tile">
       <p className="eyebrow text-center">{t('pie_title', language ?? 'en')}</p>
-      <div className="mt-4 flex flex-col sm:flex-row gap-4 items-center justify-center w-full">
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
+      <div className="mt-5 flex w-full flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <svg viewBox={`0 0 ${size} ${size}`} className="mx-auto h-44 w-44 sm:h-56 sm:w-56 md:h-64 md:w-64 lg:mx-0 lg:flex-none" aria-hidden>
           {slices.map((s, i) => (
             <path key={s.taskName + i} d={describeArc(cx, cy, r, s.startAngle, s.endAngle)} fill={s.color} />
           ))}
@@ -86,12 +86,12 @@ export default function PieByTask({ totalsByTask, totalMs, size = 220, language 
           </text>
         </svg>
 
-        <div className="flex flex-col gap-2">
+        <div className="grid w-full gap-3 lg:max-w-[24rem]">
           {slices.slice(0, 8).map((s) => (
-            <div key={s.taskName} className="flex items-center gap-3">
+            <div key={s.taskName} className="surface-muted flex items-center gap-3 px-4 py-3">
               <span style={{ width: 12, height: 12, background: s.color, borderRadius: 3, display: 'inline-block' }} />
-              <div className="text-sm">
-                <div className="font-medium text-slate-900 dark:text-white">{s.taskName}</div>
+              <div className="min-w-0 text-sm">
+                <div className="truncate font-medium text-slate-900 dark:text-white">{s.taskName}</div>
                 <div className="text-xs text-slate-600 dark:text-slate-300">{formatDuration(s.ms)} ({Math.round(s.portion * 100)}%)</div>
               </div>
             </div>
