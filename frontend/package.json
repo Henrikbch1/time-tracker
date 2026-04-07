@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "homepage": "https://Henrikbch1.github.io/time-tracker/",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
