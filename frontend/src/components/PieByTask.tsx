@@ -1,10 +1,12 @@
 import { formatDuration } from '../utils/time'
+import t from '../i18n'
+import type { Language } from '../utils/cookies'
 
 type Props = {
   totalsByTask: Record<string, number>
   totalMs: number
   size?: number
-  language?: string
+  language?: Language
 }
 
 function deg2rad(deg: number) {
@@ -43,8 +45,8 @@ export default function PieByTask({ totalsByTask, totalMs, size = 220, language 
   if (entries.length === 0 || totalMs === 0) {
     return (
       <article className="stat-tile">
-        <p className="eyebrow">{language ? 'Statistik' : 'Statistics'}</p>
-        <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">Keine Daten zum Anzeigen</p>
+        <p className="eyebrow">{t('pie_title', language ?? 'en')}</p>
+        <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{t('pie_noData', language ?? 'en')}</p>
       </article>
     )
   }
@@ -72,7 +74,7 @@ export default function PieByTask({ totalsByTask, totalMs, size = 220, language 
 
   return (
     <article className="stat-tile">
-      <p className="eyebrow text-center">{language ? 'Zeit pro Task' : 'Time per task'}</p>
+      <p className="eyebrow text-center">{t('pie_title', language ?? 'en')}</p>
       <div className="mt-4 flex flex-col sm:flex-row gap-4 items-center justify-center w-full">
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
           {slices.map((s, i) => (
@@ -94,7 +96,7 @@ export default function PieByTask({ totalsByTask, totalMs, size = 220, language 
               </div>
             </div>
           ))}
-          {slices.length > 8 ? <div className="text-xs text-slate-600 dark:text-slate-300">...and more</div> : null}
+          {slices.length > 8 ? <div className="text-xs text-slate-600 dark:text-slate-300">{t('andMore', language ?? 'en')}</div> : null}
         </div>
       </div>
     </article>

@@ -77,7 +77,7 @@ export function HistoryPanel({ history, totalTrackedMs, tags = [], onExport, onC
                         return (
                           <>
                             <span style={{ width: 10, height: 10, background: tag?.color ?? 'transparent' }} className="inline-block rounded-full" />
-                            <span>{tag?.name ?? '(deleted)'}</span>
+                            <span>{tag?.name ?? t('deletedLabel', language)}</span>
                           </>
                         )
                       })()}

@@ -202,7 +202,7 @@ function App() {
       return
     }
 
-    downloadHistory(history, tags)
+    downloadHistory(history, tags, language)
   }
 
   const handleClearHistory = () => {

@@ -34,7 +34,7 @@ export default function TagSummary({ tags, totalsByTag, language }: Props) {
                   style={{ background: tag?.color ?? 'transparent' }}
                   className="inline-block w-3 h-3 rounded-full border border-slate-200 dark:border-white/10"
                 />
-                <span className="text-sm font-medium">{tag?.name ?? '(deleted)'}</span>
+                <span className="text-sm font-medium">{tag?.name ?? t('deletedLabel', language)}</span>
               </div>
               <div className="text-sm">{formatDuration(totalsByTag[id])}</div>
             </div>

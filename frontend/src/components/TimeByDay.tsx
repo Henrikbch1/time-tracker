@@ -1,5 +1,6 @@
 import { formatDuration } from '../utils/time'
-import type { HistoryEntry, ActiveSession } from '../utils/cookies'
+import type { HistoryEntry, ActiveSession, Language } from '../utils/cookies'
+import t from '../i18n'
 
 function progressGradient(percent: number) {
   if (percent <= 0) return 'linear-gradient(180deg,#7c3aed,#06b6d4)'
@@ -12,7 +13,7 @@ function progressGradient(percent: number) {
 type Props = {
   history: HistoryEntry[]
   now?: number
-  language?: string
+  language?: Language
   activeSession?: ActiveSession | null
   elapsedMs?: number
   workdays?: Record<'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun', number>
@@ -65,13 +66,19 @@ export default function TimeByDay({ history, now = Date.now(), language, activeS
     return hrs * 3_600_000
   }), 0)
   const scaleMax = Math.max(maxMs, maxTargetMs, 1)
-  const labelsDe = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
-  const labelsEn = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  const labels = language === 'de' ? labelsDe : labelsEn
+  const labels = [
+    t('dayShortMon', language ?? 'en'),
+    t('dayShortTue', language ?? 'en'),
+    t('dayShortWed', language ?? 'en'),
+    t('dayShortThu', language ?? 'en'),
+    t('dayShortFri', language ?? 'en'),
+    t('dayShortSat', language ?? 'en'),
+    t('dayShortSun', language ?? 'en'),
+  ]
 
   return (
     <article className="stat-tile">
-      <p className="eyebrow">{language === 'de' ? 'Zeit pro Tag (Woche)' : 'Time per day (week)'}</p>
+      <p className="eyebrow">{t('timePerDayWeek', language ?? 'en')}</p>
       <div className="mt-3 flex gap-3 items-end justify-center w-full">
         {displayedDays.map((d, idx) => {
           const targetHours = d.workHours ?? 0
@@ -98,7 +105,7 @@ export default function TimeByDay({ history, now = Date.now(), language, activeS
           )
         })}
       </div>
-      <div className="mt-3 text-xs text-slate-600 dark:text-slate-300 w-full text-center">{language === 'de' ? 'Mon–So' : 'Mon–Sun'}</div>
+      <div className="mt-3 text-xs text-slate-600 dark:text-slate-300 w-full text-center">{t('monToSun', language ?? 'en')}</div>
     </article>
   )
 }

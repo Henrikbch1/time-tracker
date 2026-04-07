@@ -30,7 +30,7 @@ export default function Settings({ theme, setTheme, language, setLanguage, tags,
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-semibold">{t('settingsHeader', language)}</h2>
-        <button onClick={onClose} className="action-button">
+        <button onClick={onClose} className="action-button" aria-label={t('closeLabel', language)}>
           ×
         </button>
       </div>
@@ -146,7 +146,15 @@ export default function Settings({ theme, setTheme, language, setLanguage, tags,
             <div className="mt-2 grid grid-cols-7 gap-2">
               {['mon','tue','wed','thu','fri','sat','sun'].map((k, i) => (
                 <div key={k} className="flex flex-col items-center">
-                  <div className="text-xs">{['Mo','Di','Mi','Do','Fr','Sa','So'][i]}</div>
+                  <div className="text-xs">{[
+                    t('dayShortMon', language),
+                    t('dayShortTue', language),
+                    t('dayShortWed', language),
+                    t('dayShortThu', language),
+                    t('dayShortFri', language),
+                    t('dayShortSat', language),
+                    t('dayShortSun', language),
+                  ][i]}</div>
                   <input
                     type="number"
                     min={0}
