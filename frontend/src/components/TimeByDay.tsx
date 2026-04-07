@@ -2,6 +2,14 @@ import React from 'react'
 import { formatDuration, formatShortDate } from '../utils/time'
 import type { HistoryEntry, ActiveSession } from '../utils/cookies'
 
+function progressGradient(percent: number) {
+  if (percent <= 0) return 'linear-gradient(180deg,#7c3aed,#06b6d4)'
+  if (percent >= 100) return 'linear-gradient(180deg,#10b981,#059669)'
+  if (percent >= 75) return 'linear-gradient(180deg,#84cc16,#f59e0b)'
+  if (percent >= 50) return 'linear-gradient(180deg,#f59e0b,#fb923c)'
+  return 'linear-gradient(180deg,#ef4444,#f87171)'
+}
+
 type Props = {
   history: HistoryEntry[]
   days?: number
@@ -47,6 +55,13 @@ export default function TimeByDay({ history, days = 7, now = Date.now(), languag
   }
 
   const maxMs = Math.max(...daysArr.map((d) => d.ms), 1)
+  // compute max target ms across week to have consistent scaling
+  const maxTargetMs = Math.max(...['mon','tue','wed','thu','fri','sat','sun'].map((k, i) => {
+    const dayKey = k as 'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun'
+    const hrs = (workdays && (workdays as any)[dayKey]) ?? 0
+    return hrs * 3_600_000
+  }), 0)
+  const scaleMax = Math.max(maxMs, maxTargetMs, 1)
   const labelsDe = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
   const labelsEn = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   const labels = language === 'de' ? labelsDe : labelsEn
@@ -56,23 +71,27 @@ export default function TimeByDay({ history, days = 7, now = Date.now(), languag
       <p className="eyebrow">{language === 'de' ? 'Zeit pro Tag (Woche)' : 'Time per day (week)'}</p>
       <div className="mt-3 flex gap-3 items-end" style={{ alignItems: 'flex-end' }}>
         {daysArr.map((d, idx) => {
-          const height = Math.round((d.ms / maxMs) * 80) // max bar height px
-          const dayKey = ['mon','tue','wed','thu','fri','sat','sun'][idx]
+          const dayKey = ['mon','tue','wed','thu','fri','sat','sun'][idx] as 'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun'
           const targetHours = (workdays && (workdays as any)[dayKey]) ?? 0
           const targetMs = targetHours * 3_600_000
-          const targetPos = Math.round((targetMs / maxMs) * 80)
+          const achievedHeight = Math.round((d.ms / scaleMax) * 80)
+          const targetHeight = Math.round((targetMs / scaleMax) * 80)
+          const percent = targetMs > 0 ? Math.round((d.ms / targetMs) * 100) : 0
 
           return (
             <div key={d.key} className="flex flex-col items-center" style={{ width: 40 }}>
               <div title={`${formatDuration(d.ms)}`} style={{ height: 80, display: 'flex', alignItems: 'flex-end', position: 'relative' }}>
-                <div style={{ width: 28, height: `${height}px`, background: 'linear-gradient(180deg, #7c3aed, #06b6d4)', borderRadius: 4 }} />
-                {/* target line */}
+                {/* target background bar */}
+                <div style={{ width: 28, height: `${targetHeight}px`, background: 'rgba(148,163,184,0.12)', borderRadius: 4, position: 'absolute', bottom: 0 }} aria-hidden />
+                {/* achieved fill */}
+                <div style={{ width: 28, height: `${achievedHeight}px`, background: progressGradient(percent), borderRadius: 4, position: 'relative' }} />
+                {/* small target line indicator */}
                 {targetMs > 0 ? (
-                  <div style={{ position: 'absolute', bottom: `${targetPos}px`, left: 6, width: 28, height: 2, background: 'rgba(255,255,255,0.9)', borderTop: '2px dashed rgba(0,0,0,0.6)' }} aria-hidden />
+                  <div style={{ position: 'absolute', bottom: `${targetHeight}px`, left: 6, width: 28, height: 2, background: 'rgba(255,255,255,0.9)', opacity: 0.9 }} aria-hidden />
                 ) : null}
               </div>
               <div className="text-xs text-slate-600 dark:text-slate-300 mt-2">{labels[idx]}</div>
-              <div className="text-[10px] text-slate-700 dark:text-slate-200 mt-1">{formatDuration(d.ms)}</div>
+              <div className="text-[10px] text-slate-700 dark:text-slate-200 mt-1">{formatDuration(d.ms)}{targetMs>0 ? ` • ${percent}%` : ''}</div>
             </div>
           )
         })}
