@@ -1,6 +1,6 @@
 {
   "name": "time-tracker",
-  "version": "0.3.0",
+  "version": "0.4.1",
   "description": "Frontend TimeTracker App (React + TypeScript + Vite)",
   "repository": {
     "type": "git",
