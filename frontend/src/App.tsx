@@ -3,6 +3,7 @@ import { HistoryPanel } from './components/HistoryPanel'
 // Theme and language toggles moved to Settings
 import { TrackerCard } from './components/TrackerCard'
 import TagSummary from './components/TagSummary'
+import PieByTask from './components/PieByTask'
 import Settings from './components/Settings'
 import { useInterval } from './hooks/useInterval'
 import {
@@ -137,6 +138,15 @@ function App() {
 
     return map
   }, {})
+  const totalsByTask = history.reduce((map: Record<string, number>, entry) => {
+    map[entry.taskName] = (map[entry.taskName] || 0) + entry.durationMs
+    return map
+  }, {} as Record<string, number>)
+
+  // include currently running session time in the totals
+  if (activeSession) {
+    totalsByTask[activeSession.taskName] = (totalsByTask[activeSession.taskName] || 0) + elapsedMs
+  }
   const completedToday = history.filter(
     (entry) => now - entry.endTimestamp >= 0 && now - entry.endTimestamp < DAY_IN_MS,
   ).length
@@ -303,7 +313,10 @@ function App() {
               </p>
             </article>
           </div>
-          <TagSummary tags={tags} totalsByTag={totalsByTag} language={language} />
+          <div className="grid gap-6 xl:grid-cols-2">
+            <TagSummary tags={tags} totalsByTag={totalsByTag} language={language} />
+            <PieByTask totalsByTask={totalsByTask} totalMs={totalTrackedMs + (activeSession ? elapsedMs : 0)} language={language} />
+          </div>
         </section>
 
         <HistoryPanel
