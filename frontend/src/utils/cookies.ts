@@ -152,3 +152,25 @@ export function readTheme() {
 export function writeTheme(theme: ThemeMode) {
   Cookies.set(THEME_COOKIE, theme, COOKIE_WRITE_OPTIONS)
 }
+
+export type Language = 'en' | 'de'
+
+const LANG_COOKIE = 'hookie.lang'
+
+function isLanguage(value: unknown): value is Language {
+  return value === 'en' || value === 'de'
+}
+
+export function readLanguage() {
+  const lang = Cookies.get(LANG_COOKIE)
+
+  if (!isLanguage(lang)) {
+    return null
+  }
+
+  return lang
+}
+
+export function writeLanguage(lang: Language) {
+  Cookies.set(LANG_COOKIE, lang, COOKIE_WRITE_OPTIONS)
+}

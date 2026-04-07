@@ -1,30 +1,33 @@
 import { type HistoryEntry } from '../utils/cookies'
 import { formatDateTime, formatDuration, formatShortDate, formatTime } from '../utils/time'
+import t from '../i18n'
+import type { Language } from '../utils/cookies'
 
 interface HistoryPanelProps {
   history: HistoryEntry[]
   totalTrackedMs: number
   onExport: () => void
   onClear: () => void
+  language: Language
 }
 
-export function HistoryPanel({ history, totalTrackedMs, onExport, onClear }: HistoryPanelProps) {
+export function HistoryPanel({ history, totalTrackedMs, onExport, onClear, language }: HistoryPanelProps) {
   return (
     <section className="surface mt-6 px-6 py-6 sm:px-8 sm:py-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="eyebrow">Task history</p>
+          <p className="eyebrow">{t('taskHistory', language)}</p>
           <h2 className="display-face mt-3 text-3xl font-semibold tracking-[-0.06em] text-slate-950 dark:text-white">
-            Exportable, compact, and local-first.
+            {t('exportableCompact', language)}
           </h2>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300">
-            Completed sessions are serialized into a cookie-backed JSON array. Hookie keeps the newest entries when space gets tight.
+            {t('completedSessionsParagraph', language)}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="surface-muted px-4 py-3 text-left">
-            <p className="eyebrow">Stored total</p>
+            <p className="eyebrow">{t('storedTotal', language)}</p>
             <p className="mono-face mt-2 text-lg font-medium text-slate-950 dark:text-white">
               {formatDuration(totalTrackedMs)}
             </p>
@@ -35,7 +38,7 @@ export function HistoryPanel({ history, totalTrackedMs, onExport, onClear }: His
             disabled={history.length === 0}
             className="action-button disabled:cursor-not-allowed disabled:opacity-55"
           >
-            Export history
+            {t('exportHistory', language)}
           </button>
           <button
             type="button"
@@ -43,7 +46,7 @@ export function HistoryPanel({ history, totalTrackedMs, onExport, onClear }: His
             disabled={history.length === 0}
             className="action-button disabled:cursor-not-allowed disabled:opacity-55"
           >
-            Delete all
+            {t('deleteAll', language)}
           </button>
         </div>
       </div>
@@ -52,10 +55,10 @@ export function HistoryPanel({ history, totalTrackedMs, onExport, onClear }: His
         <div className="surface-muted mt-8 flex min-h-56 items-center justify-center px-6 py-10 text-center">
           <div className="max-w-md">
             <p className="display-face text-2xl font-semibold text-slate-950 dark:text-white">
-              No sessions saved yet.
+              {t('noSessionsSaved', language)}
             </p>
             <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
-              Finish a task and it will land here with start time, end time, and duration, ready for export.
+              {t('finishATaskParagraph', language)}
             </p>
           </div>
         </div>
@@ -68,13 +71,13 @@ export function HistoryPanel({ history, totalTrackedMs, onExport, onClear }: His
                   {entry.taskName}
                 </p>
                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                  Finished {formatDateTime(entry.endTimestamp)}
+                  {t('finishedAt', language)} {formatDateTime(entry.endTimestamp)}
                 </p>
               </div>
 
-              <Detail label="Started" value={formatTime(entry.startTimestamp)} helper={formatShortDate(entry.startTimestamp)} />
-              <Detail label="Stopped" value={formatTime(entry.endTimestamp)} helper={formatShortDate(entry.endTimestamp)} />
-              <Detail label="Duration" value={formatDuration(entry.durationMs)} helper="Saved to cookie history" />
+              <Detail label={t('detailStarted', language)} value={formatTime(entry.startTimestamp)} helper={formatShortDate(entry.startTimestamp)} />
+              <Detail label={t('detailStopped', language)} value={formatTime(entry.endTimestamp)} helper={formatShortDate(entry.endTimestamp)} />
+              <Detail label={t('detailDuration', language)} value={formatDuration(entry.durationMs)} helper={t('savedToCookieHistory', language)} />
             </li>
           ))}
         </ol>
