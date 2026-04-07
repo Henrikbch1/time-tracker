@@ -30,8 +30,7 @@ import {
 import t from './i18n'
 import { downloadHistory } from './utils/export'
 import { formatDateTime, formatDuration, getElapsedDuration } from './utils/time'
-
-const DAY_IN_MS = 86_400_000
+import { formatLocalYMD } from './utils/date'
 
 function getSystemTheme(): ThemeMode {
   if (typeof window === 'undefined') {
@@ -154,9 +153,8 @@ function App() {
   if (activeSession) {
     totalsByTask[activeSession.taskName] = (totalsByTask[activeSession.taskName] || 0) + elapsedMs
   }
-  const completedToday = history.filter(
-    (entry) => now - entry.endTimestamp >= 0 && now - entry.endTimestamp < DAY_IN_MS,
-  ).length
+  const todayKey = formatLocalYMD(now)
+  const completedToday = history.filter((entry) => formatLocalYMD(entry.endTimestamp) === todayKey).length
   const latestEntry = history[0] ?? null
 
   const handleStart = () => {
