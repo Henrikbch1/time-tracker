@@ -70,6 +70,7 @@ const strings = {
     workdaysHelp: 'Set expected hours for each weekday. Leave 0 for non-working days.',
     hours: 'hours',
     save: 'Save',
+    saved: 'Saved',
   },
   de: {
     eyebrow: 'Browser-basierte Zeiterfassung',
@@ -140,6 +141,7 @@ const strings = {
     workdaysHelp: 'Erwarte Stunden pro Wochentag einstellen. Für freie Tage 0 eintragen.',
     hours: 'Stunden',
     save: 'Speichern',
+    saved: 'Gespeichert',
   },
 } as const
 

@@ -25,6 +25,7 @@ export default function Settings({ theme, setTheme, language, setLanguage, tags,
   // local copies for settings
   const [goalHours, setGoalHours] = useState<number>(dailyGoalHours ?? 8)
   const [localWorkdays, setLocalWorkdays] = useState(() => workdays ?? { mon: 8, tue: 8, wed: 8, thu: 8, fri: 8, sat: 0, sun: 0 })
+  const [saved, setSaved] = useState(false)
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
       <div className="flex items-center justify-between mb-6">
@@ -150,13 +151,22 @@ export default function Settings({ theme, setTheme, language, setLanguage, tags,
           </div>
 
           <div className="flex gap-2">
-            <button type="button" className="primary-button" onClick={() => {
-              // persist and lift up (keep settings open)
-              setDailyGoalHours(goalHours)
-              setWorkdays(localWorkdays)
-              writeDailyGoal(goalHours)
-              writeWorkdays(localWorkdays)
-            }}>{t('save', language)}</button>
+            <button
+              type="button"
+              className={"primary-button" + (saved ? ' opacity-90' : '')}
+              onClick={() => {
+                // persist and lift up (keep settings open)
+                setDailyGoalHours(goalHours)
+                setWorkdays(localWorkdays)
+                writeDailyGoal(goalHours)
+                writeWorkdays(localWorkdays)
+                setSaved(true)
+                window.setTimeout(() => setSaved(false), 2000)
+              }}
+              aria-live="polite"
+            >
+              {saved ? t('saved', language) : t('save', language)}
+            </button>
           </div>
         </div>
       </section>
