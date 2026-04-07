@@ -63,6 +63,11 @@ const strings = {
     colorPicker: 'Color picker',
     tagsSummary: 'Tags summary',
     noTagsYet: 'No tag-based totals yet',
+    workGoalSection: 'Work goal',
+    dailyGoalLabel: 'Daily target',
+    workdaysLabel: 'Workdays (hours)',
+    hours: 'hours',
+    save: 'Save',
   },
   de: {
     eyebrow: 'Browser-basierte Zeiterfassung',
@@ -126,6 +131,11 @@ const strings = {
     colorPicker: 'Farbwähler',
     tagsSummary: 'Tag-Übersicht',
     noTagsYet: 'Noch keine tag-basierten Summen',
+    workGoalSection: 'Arbeitsziel',
+    dailyGoalLabel: 'Tägliches Ziel',
+    workdaysLabel: 'Arbeitstage (Stunden)',
+    hours: 'Stunden',
+    save: 'Speichern',
   },
 } as const
 

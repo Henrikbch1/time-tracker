@@ -192,6 +192,9 @@ export type Language = 'en' | 'de'
 
 const LANG_COOKIE = 'hookie.lang'
 
+const DAILY_GOAL_COOKIE = 'hookie.daily-goal'
+const WORKDAYS_COOKIE = 'hookie.workdays'
+
 function isLanguage(value: unknown): value is Language {
   return value === 'en' || value === 'de'
 }
@@ -208,4 +211,47 @@ export function readLanguage() {
 
 export function writeLanguage(lang: Language) {
   Cookies.set(LANG_COOKIE, lang, COOKIE_WRITE_OPTIONS)
+}
+
+export function readDailyGoal() {
+  const v = Cookies.get(DAILY_GOAL_COOKIE)
+  if (!v) return null
+  const n = Number(v)
+  if (!isFiniteNumber(n) || n < 0 || n > 24) return null
+  return n
+}
+
+export function writeDailyGoal(hours: number) {
+  if (!isFiniteNumber(hours) || hours <= 0) {
+    Cookies.remove(DAILY_GOAL_COOKIE, COOKIE_REMOVE_OPTIONS)
+    return
+  }
+
+  Cookies.set(DAILY_GOAL_COOKIE, String(hours), COOKIE_WRITE_OPTIONS)
+}
+
+type WorkdaysMap = Record<'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun', number>
+
+function isWorkdaysMap(value: unknown): value is WorkdaysMap {
+  if (!value || typeof value !== 'object') return false
+  const v = value as Record<string, unknown>
+  const keys = ['mon','tue','wed','thu','fri','sat','sun']
+  for (const k of keys) {
+    const x = v[k]
+    if (x === undefined) return false
+    if (typeof x !== 'number' || !Number.isFinite(x) || x < 0 || x > 24) return false
+  }
+  return true
+}
+
+export function readWorkdays(): WorkdaysMap {
+  const parsed = safeParseJson<unknown>(Cookies.get(WORKDAYS_COOKIE))
+  if (isWorkdaysMap(parsed)) return parsed
+
+  // default: Mon-Fri 8h, Sat/Sun 0h
+  return { mon: 8, tue: 8, wed: 8, thu: 8, fri: 8, sat: 0, sun: 0 }
+}
+
+export function writeWorkdays(map: WorkdaysMap) {
+  Cookies.set(WORKDAYS_COOKIE, JSON.stringify(map), COOKIE_WRITE_OPTIONS)
 }
