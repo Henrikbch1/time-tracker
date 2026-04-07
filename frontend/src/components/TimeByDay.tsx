@@ -41,20 +41,25 @@ export default function TimeByDay({ history, days = 7, now = Date.now(), languag
     const d = new Date(monday)
     d.setDate(monday.getDate() + i)
     const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString().slice(0, 10)
-    return { key, ts: d.getTime(), ms: dayMs[key] || 0 }
+    const dayKey = ['mon','tue','wed','thu','fri','sat','sun'][i] as 'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun'
+    const workHours = (workdays && (workdays as any)[dayKey]) ?? 0
+    return { key, ts: d.getTime(), ms: dayMs[key] || 0, dayKey, workHours }
   })
 
   // add active session elapsed time to today's bucket if it exists
   if (activeSession) {
     const activeDateKey = new Date(activeSession.startTimestamp).toISOString().slice(0, 10)
-    const todayKey = new Date(daysArr[ (new Date(now).getDay()+6)%7 ].ts).toISOString().slice(0,10)
-    // if active session started today (or yesterday but still running) only add to today's bucket
+    const todayIndex = (new Date(now).getDay() + 6) % 7
+    const todayKey = new Date(daysArr[todayIndex].ts).toISOString().slice(0, 10)
+    // if active session started today only add to today's bucket
     if (activeDateKey === todayKey) {
-      daysArr[ (new Date(now).getDay()+6)%7 ].ms += elapsedMs || 0
+      daysArr[todayIndex].ms += elapsedMs || 0
     }
   }
 
-  const maxMs = Math.max(...daysArr.map((d) => d.ms), 1)
+  // filter to only workdays with > 0 hours
+  const displayedDays = daysArr.filter((d) => (d.workHours ?? 0) > 0)
+  const maxMs = Math.max(...displayedDays.map((d) => d.ms), 1)
   // compute max target ms across week to have consistent scaling
   const maxTargetMs = Math.max(...['mon','tue','wed','thu','fri','sat','sun'].map((k, i) => {
     const dayKey = k as 'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun'
@@ -70,9 +75,9 @@ export default function TimeByDay({ history, days = 7, now = Date.now(), languag
     <article className="stat-tile">
       <p className="eyebrow">{language === 'de' ? 'Zeit pro Tag (Woche)' : 'Time per day (week)'}</p>
       <div className="mt-3 flex gap-3 items-end" style={{ alignItems: 'flex-end' }}>
-        {daysArr.map((d, idx) => {
-          const dayKey = ['mon','tue','wed','thu','fri','sat','sun'][idx] as 'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun'
-          const targetHours = (workdays && (workdays as any)[dayKey]) ?? 0
+        {displayedDays.map((d, idx) => {
+          const dayKey = d.dayKey
+          const targetHours = d.workHours ?? 0
           const targetMs = targetHours * 3_600_000
           const achievedHeight = Math.round((d.ms / scaleMax) * 80)
           const targetHeight = Math.round((targetMs / scaleMax) * 80)

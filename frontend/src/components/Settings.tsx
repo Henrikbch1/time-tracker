@@ -131,7 +131,10 @@ export default function Settings({ theme, setTheme, language, setLanguage, tags,
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
               <label className="text-sm font-medium">{t('dailyGoalLabel', language)}</label>
-              <input type="number" min={0} max={24} value={goalHours} onChange={(e) => setGoalHours(Number(e.target.value) || 0)} className="w-20 rounded px-2 py-1" />
+              <input type="number" min={0} max={24} value={goalHours} onChange={(e) => {
+                const v = Number(e.target.value)
+                setGoalHours(Number.isFinite(v) ? Math.max(0, Math.min(24, v)) : 0)
+              }} className="w-20 rounded px-2 py-1" />
               <span className="text-sm text-slate-600">{t('hours', language)}</span>
             </div>
             <div className="text-xs text-slate-500 dark:text-slate-400">{t('dailyGoalHelp', language)}</div>
@@ -144,7 +147,18 @@ export default function Settings({ theme, setTheme, language, setLanguage, tags,
               {['mon','tue','wed','thu','fri','sat','sun'].map((k, i) => (
                 <div key={k} className="flex flex-col items-center">
                   <div className="text-xs">{['Mo','Di','Mi','Do','Fr','Sa','So'][i]}</div>
-                  <input type="number" min={0} max={24} value={(localWorkdays as any)[k]} onChange={(e) => setLocalWorkdays((w) => ({ ...w, [k]: Number(e.target.value) || 0 }))} className="w-16 rounded px-1 py-1 text-center" />
+                  <input
+                    type="number"
+                    min={0}
+                    max={24}
+                    value={(localWorkdays as any)[k]}
+                    onChange={(e) => {
+                      const v = Number(e.target.value)
+                      const safe = Number.isFinite(v) ? Math.max(0, Math.min(24, v)) : 0
+                      setLocalWorkdays((w) => ({ ...w, [k]: safe }))
+                    }}
+                    className="w-16 rounded px-1 py-1 text-center"
+                  />
                 </div>
               ))}
             </div>
