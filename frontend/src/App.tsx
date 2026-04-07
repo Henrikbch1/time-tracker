@@ -3,6 +3,8 @@ import { HistoryPanel } from './components/HistoryPanel'
 // Theme and language toggles moved to Settings
 import { TrackerCard } from './components/TrackerCard'
 import TagSummary from './components/TagSummary'
+import PieByTask from './components/PieByTask'
+import TimeByDay from './components/TimeByDay'
 import Settings from './components/Settings'
 import { useInterval } from './hooks/useInterval'
 import {
@@ -21,6 +23,8 @@ import {
   writeTheme,
   writeTags,
   readLanguage,
+  readDailyGoal,
+  readWorkdays,
   writeLanguage,
 } from './utils/cookies'
 import t from './i18n'
@@ -47,6 +51,8 @@ function getInitialState() {
     activeSession: restoredSession,
     history: readHistory(),
     tags: readTags(),
+    dailyGoalHours: readDailyGoal() ?? 8,
+    workdays: readWorkdays(),
     now: Date.now(),
   }
 }
@@ -62,6 +68,8 @@ function App() {
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null)
   const [now, setNow] = useState(initialState.now)
   const [route, setRoute] = useState<string>(typeof window !== 'undefined' && window.location.pathname === '/settings' ? 'settings' : 'home')
+  const [dailyGoalHours, setDailyGoalHours] = useState<number>(initialState.dailyGoalHours)
+  const [workdays, setWorkdays] = useState(initialState.workdays)
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
@@ -137,6 +145,15 @@ function App() {
 
     return map
   }, {})
+  const totalsByTask = history.reduce((map: Record<string, number>, entry) => {
+    map[entry.taskName] = (map[entry.taskName] || 0) + entry.durationMs
+    return map
+  }, {} as Record<string, number>)
+
+  // include currently running session time in the totals
+  if (activeSession) {
+    totalsByTask[activeSession.taskName] = (totalsByTask[activeSession.taskName] || 0) + elapsedMs
+  }
   const completedToday = history.filter(
     (entry) => now - entry.endTimestamp >= 0 && now - entry.endTimestamp < DAY_IN_MS,
   ).length
@@ -206,7 +223,19 @@ function App() {
     return (
       <div className="relative isolate overflow-hidden">
         <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
-          <Settings theme={theme} setTheme={(m) => setTheme(m)} language={language} setLanguage={(l) => setLanguage(l)} tags={tags} setTags={setTags} onClose={closeSettings} />
+          <Settings
+            theme={theme}
+            setTheme={(m) => setTheme(m)}
+            language={language}
+            setLanguage={(l) => setLanguage(l)}
+            tags={tags}
+            setTags={setTags}
+            onClose={closeSettings}
+            dailyGoalHours={dailyGoalHours}
+            setDailyGoalHours={setDailyGoalHours}
+            workdays={workdays}
+            setWorkdays={setWorkdays}
+          />
         </main>
       </div>
     )
@@ -303,7 +332,11 @@ function App() {
               </p>
             </article>
           </div>
-          <TagSummary tags={tags} totalsByTag={totalsByTag} language={language} />
+          <div className="grid gap-6 xl:grid-cols-3">
+            <TagSummary tags={tags} totalsByTag={totalsByTag} language={language} />
+            <PieByTask totalsByTask={totalsByTask} totalMs={totalTrackedMs + (activeSession ? elapsedMs : 0)} language={language} />
+            <TimeByDay history={history} now={now} language={language} activeSession={activeSession} elapsedMs={elapsedMs} workdays={workdays} />
+          </div>
         </section>
 
         <HistoryPanel

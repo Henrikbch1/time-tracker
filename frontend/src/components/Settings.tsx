@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ThemeToggle } from './ThemeToggle'
 import LanguageToggle from './LanguageToggle'
 import type { Tag, Language } from '../utils/cookies'
+import { writeDailyGoal, writeWorkdays } from '../utils/cookies'
 import t from '../i18n'
 
 interface Props {
@@ -12,11 +13,19 @@ interface Props {
   tags: Tag[]
   setTags: (tags: Tag[]) => void
   onClose: () => void
+  dailyGoalHours: number
+  setDailyGoalHours: (n: number) => void
+  workdays: Record<'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun', number>
+  setWorkdays: (m: Record<'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun', number>) => void
 }
 
-export default function Settings({ theme, setTheme, language, setLanguage, tags, setTags, onClose }: Props) {
+export default function Settings({ theme, setTheme, language, setLanguage, tags, setTags, onClose, dailyGoalHours, setDailyGoalHours, workdays, setWorkdays }: Props) {
   const [newTagName, setNewTagName] = useState('')
   const [newTagColor, setNewTagColor] = useState('#7c3aed')
+  // local copies for settings
+  const [goalHours, setGoalHours] = useState<number>(dailyGoalHours ?? 8)
+  const [localWorkdays, setLocalWorkdays] = useState(() => workdays ?? { mon: 8, tue: 8, wed: 8, thu: 8, fri: 8, sat: 0, sun: 0 })
+  const [saved, setSaved] = useState(false)
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
       <div className="flex items-center justify-between mb-6">
@@ -40,7 +49,7 @@ export default function Settings({ theme, setTheme, language, setLanguage, tags,
         </div>
       </section>
 
-      <section className="surface p-4">
+      <section className="surface mb-4 p-4">
         <p className="eyebrow">{t('tagsSection', language)}</p>
         <div className="mt-4 flex flex-col gap-3">
           <input
@@ -113,6 +122,65 @@ export default function Settings({ theme, setTheme, language, setLanguage, tags,
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+      <section className="surface mb-4 p-4">
+        <p className="eyebrow">{t('workGoalSection', language)}</p>
+        <div className="mt-4 flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium">{t('dailyGoalLabel', language)}</label>
+              <input type="number" min={0} max={24} value={goalHours} onChange={(e) => {
+                const v = Number(e.target.value)
+                setGoalHours(Number.isFinite(v) ? Math.max(0, Math.min(24, v)) : 0)
+              }} className="w-20 rounded px-2 py-1" />
+              <span className="text-sm text-slate-600">{t('hours', language)}</span>
+            </div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">{t('dailyGoalHelp', language)}</div>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium">{t('workdaysLabel', language)}</p>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('workdaysHelp', language)}</div>
+            <div className="mt-2 grid grid-cols-7 gap-2">
+              {['mon','tue','wed','thu','fri','sat','sun'].map((k, i) => (
+                <div key={k} className="flex flex-col items-center">
+                  <div className="text-xs">{['Mo','Di','Mi','Do','Fr','Sa','So'][i]}</div>
+                  <input
+                    type="number"
+                    min={0}
+                    max={24}
+                    value={(localWorkdays as any)[k]}
+                    onChange={(e) => {
+                      const v = Number(e.target.value)
+                      const safe = Number.isFinite(v) ? Math.max(0, Math.min(24, v)) : 0
+                      setLocalWorkdays((w) => ({ ...w, [k]: safe }))
+                    }}
+                    className="w-16 rounded px-1 py-1 text-center"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className={"primary-button" + (saved ? ' opacity-90' : '')}
+              onClick={() => {
+                // persist and lift up (keep settings open)
+                setDailyGoalHours(goalHours)
+                setWorkdays(localWorkdays)
+                writeDailyGoal(goalHours)
+                writeWorkdays(localWorkdays)
+                setSaved(true)
+                window.setTimeout(() => setSaved(false), 2000)
+              }}
+              aria-live="polite"
+            >
+              {saved ? t('saved', language) : t('save', language)}
+            </button>
           </div>
         </div>
       </section>

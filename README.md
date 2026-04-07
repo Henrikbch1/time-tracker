@@ -1,6 +1,6 @@
 # TimeTracker
 
-[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-0.2.1-lightgrey.svg)](frontend/package.json) [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-deployed-brightgreen.svg)](https://Henrikbch1.github.io/time-tracker/)
+[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-0.3.0-lightgrey.svg)](frontend/package.json) [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-deployed-brightgreen.svg)](https://Henrikbch1.github.io/time-tracker/)
 
 Elegant, leichtgewichtiger Time-Tracker — Single-Page-App mit React, TypeScript und Vite.
 
@@ -12,6 +12,14 @@ Hinweis: Theme (Dark/Light), Sprache und Tag-Management werden jetzt über die i
 - **Tech:** React, TypeScript, Vite, Tailwind
 - **Deployment:** GitHub Pages (Script: `frontend/package.json`)
 - **Architektur:** Kleine Komponentenstruktur, Hooks und Utility-Module
+
+**Neu (Statistiken & Einstellungen)**
+- Wochen-Ansicht: Balkendiagramm "Zeit pro Tag (Woche)" zeigt die Gesamtzeit pro Arbeitstag (Mo–So) und eine Ziel-Linie pro Tag.
+- Tagesziele: In den `Settings` lässt sich ein `Daily target` und für jeden Wochentag die erwartete Arbeitszeit (Stunden) einstellen.
+- Fortschritt: Balken sind farbcodiert nach Fortschritt (Rot→Orange→Gelb→Grün) und zeigen Prozent-Erreichung des Tagesziels.
+- Task-Statistik: Kreisdiagramm "Time per task" zeigt, wie viel Zeit pro Aufgabe verbracht wurde.
+- Settings: Änderungen werden persistiert (Cookies) und der Save-Button gibt visuelles Feedback ("Saved").
+- Validierung: Stunden-Eingaben werden auf 0–24 geclampet; negative Werte werden nicht akzeptiert.
 
 **Schnellstart**
 1. Öffne ein Terminal im `frontend`-Ordner
