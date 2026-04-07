@@ -1,0 +1,112 @@
+import type { Language } from './utils/cookies'
+
+const strings = {
+  en: {
+    eyebrow: 'Browser-native time tracking',
+    cookieState: 'Cookie state',
+    lastCompleted: 'Last completed',
+    noCompleted: 'No completed sessions yet',
+    startFirst: 'Start your first task to build up a lightweight personal timeline.',
+    completedSessions: 'Completed sessions',
+    trackedTime: 'Tracked time',
+    closedToday: 'Closed today',
+    introParagraph: 'Track one task at a time, recover instantly after refresh, and keep an exportable local history without leaving the browser.',
+    // Stat descriptions
+    completedSessionsDesc: 'Hookie keeps the newest entries in cookies so refresh recovery stays fast.',
+    trackedTimeDesc: 'Total across completed tasks in the current browser profile.',
+    closedTodayDesc: 'A quick signal for momentum without introducing extra dashboards.',
+    // TrackerCard
+    activeTracking: 'Active tracking',
+    keepOneTask: 'Keep one task in motion.',
+    storesRunningTask: 'Hookie stores the running task in cookies, so a refresh restores the timer state instead of silently dropping work.',
+    currentDuration: 'Current duration',
+    startedAt: 'Started',
+    readyToBegin: 'Ready to begin a focused session.',
+    taskName: 'Task name',
+    placeholderTask: 'Ship project recap, review pull requests, write docs...',
+    startTimer: 'Start timer',
+    stopAndSave: 'Stop and save',
+    persistenceTitle: 'Persistence',
+    persistenceDesc: 'Active task name and start time are mirrored into browser cookies via js-cookie.',
+    accuracyTitle: 'Accuracy',
+    accuracyDesc: 'The elapsed label recalculates from the persisted start timestamp on every interval tick.',
+    workflowTitle: 'Workflow',
+    workflowDesc: 'One running task at a time keeps the cookie model simple and the UI unambiguous.',
+    // HistoryPanel
+    taskHistory: 'Task history',
+    exportableCompact: 'Exportable, compact, and local-first.',
+    completedSessionsParagraph: 'Completed sessions are serialized into a cookie-backed JSON array. Hookie keeps the newest entries when space gets tight.',
+    storedTotal: 'Stored total',
+    exportHistory: 'Export history',
+    deleteAll: 'Delete all',
+    noSessionsSaved: 'No sessions saved yet.',
+    finishATaskParagraph: 'Finish a task and it will land here with start time, end time, and duration, ready for export.',
+    finishedAt: 'Finished',
+    detailStarted: 'Started',
+    detailStopped: 'Stopped',
+    detailDuration: 'Duration',
+    savedToCookieHistory: 'Saved to cookie history',
+    confirmDeleteHistory: 'Delete the full Hookie history from this browser?',
+    // Theme
+    lightMode: 'Light mode',
+    darkMode: 'Dark mode',
+  },
+  de: {
+    eyebrow: 'Browser-basierte Zeiterfassung',
+    cookieState: 'Cookie-Zustand',
+    lastCompleted: 'Zuletzt abgeschlossen',
+    noCompleted: 'Noch keine abgeschlossenen Sessions',
+    startFirst: 'Starte deine erste Aufgabe, um eine leichte persönliche Timeline aufzubauen.',
+    completedSessions: 'Abgeschlossene Sessions',
+    trackedTime: 'Erfasste Zeit',
+    closedToday: 'Heute abgeschlossen',
+    introParagraph: 'Verfolge eine Aufgabe nach der anderen, stelle nach einem Refresh sofort wieder her und behalte einen exportierbaren lokalen Verlauf.',
+    // Stat descriptions
+    completedSessionsDesc: 'Hookie behält die neuesten Einträge in Cookies, sodass die Wiederherstellung nach einem Refresh schnell bleibt.',
+    trackedTimeDesc: 'Gesamt über abgeschlossene Aufgaben im aktuellen Browser-Profil.',
+    closedTodayDesc: 'Ein schneller Indikator für Momentum, ohne zusätzliche Dashboards.',
+    // TrackerCard
+    activeTracking: 'Aktive Erfassung',
+    keepOneTask: 'Halte eine Aufgabe in Bewegung.',
+    storesRunningTask: 'Hookie speichert die laufende Aufgabe in Cookies, sodass ein Refresh den Timer-Status wiederherstellt statt die Arbeit zu verwerfen.',
+    currentDuration: 'Aktuelle Dauer',
+    startedAt: 'Gestartet',
+    readyToBegin: 'Bereit für eine fokussierte Sitzung.',
+    taskName: 'Aufgabenname',
+    placeholderTask: 'Projekt-Recap versenden, Pull-Requests prüfen, Dokumentation schreiben...',
+    startTimer: 'Timer starten',
+    stopAndSave: 'Stoppen und speichern',
+    persistenceTitle: 'Persistenz',
+    persistenceDesc: 'Aktiver Aufgabenname und Startzeit werden via js-cookie in Browser-Cookies gespiegelt.',
+    accuracyTitle: 'Genauigkeit',
+    accuracyDesc: 'Das verstrichene Label wird bei jedem Tick vom persistierten Startzeitstempel neu berechnet.',
+    workflowTitle: 'Workflow',
+    workflowDesc: 'Eine laufende Aufgabe zur Zeit hält das Cookie-Modell einfach und die UI eindeutig.',
+    // HistoryPanel
+    taskHistory: 'Aufgabenverlauf',
+    exportableCompact: 'Exportierbar, kompakt und lokal-zuerst.',
+    completedSessionsParagraph: 'Abgeschlossene Sessions werden in ein Cookie-gestütztes JSON-Array serialisiert. Hookie behält bei Platzknappheit die neuesten Einträge.',
+    storedTotal: 'Gesamt gespeichert',
+    exportHistory: 'Verlauf exportieren',
+    deleteAll: 'Alles löschen',
+    noSessionsSaved: 'Noch keine gespeicherten Sessions.',
+    finishATaskParagraph: 'Schließe eine Aufgabe ab und sie landet hier mit Startzeit, Endzeit und Dauer, bereit zum Export.',
+    finishedAt: 'Abgeschlossen',
+    detailStarted: 'Gestartet',
+    detailStopped: 'Beendet',
+    detailDuration: 'Dauer',
+    savedToCookieHistory: 'In Cookie-History gespeichert',
+    confirmDeleteHistory: 'Den gesamten Hookie-Verlauf aus diesem Browser löschen?',
+    // Theme
+    lightMode: 'Heller Modus',
+    darkMode: 'Dunkler Modus',
+  },
+} as const
+
+export type Key = keyof typeof strings['en']
+
+export function t(key: Key, lang: Language) {
+  return (strings[lang][key] ?? strings.en[key]) as string
+}
+
+export default t

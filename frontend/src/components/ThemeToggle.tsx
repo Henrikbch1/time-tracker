@@ -1,23 +1,26 @@
 import { type ThemeMode } from '../utils/cookies'
+import t from '../i18n'
+import type { Language } from '../utils/cookies'
 
 interface ThemeToggleProps {
   mode: ThemeMode
   onToggle: () => void
+  language?: Language
 }
 
-export function ThemeToggle({ mode, onToggle }: ThemeToggleProps) {
+export function ThemeToggle({ mode, onToggle, language = 'en' }: ThemeToggleProps) {
   return (
     <button
       type="button"
       onClick={onToggle}
       className="action-button gap-2"
-      aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
+      aria-label={`Switch to ${mode === 'dark' ? t('lightMode', language) : t('darkMode', language)}`}
     >
       <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-white dark:bg-white dark:text-slate-950">
         {mode === 'dark' ? <SunIcon /> : <MoonIcon />}
       </span>
       <span className="mono-face text-xs uppercase tracking-[0.24em]">
-        {mode === 'dark' ? 'Light mode' : 'Dark mode'}
+        {mode === 'dark' ? t('lightMode', language) : t('darkMode', language)}
       </span>
     </button>
   )

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { HistoryPanel } from './components/HistoryPanel'
 import { ThemeToggle } from './components/ThemeToggle'
+import LanguageToggle from './components/LanguageToggle'
 import { TrackerCard } from './components/TrackerCard'
 import { useInterval } from './hooks/useInterval'
 import {
@@ -15,7 +16,10 @@ import {
   writeActiveSession,
   writeHistory,
   writeTheme,
+  readLanguage,
+  writeLanguage,
 } from './utils/cookies'
+import t from './i18n'
 import { downloadHistory } from './utils/export'
 import { formatDateTime, formatDuration, getElapsedDuration } from './utils/time'
 
@@ -34,6 +38,7 @@ function getInitialState() {
 
   return {
     theme: readTheme() ?? getSystemTheme(),
+    language: readLanguage() ?? 'en',
     taskName: restoredSession?.taskName ?? '',
     activeSession: restoredSession,
     history: readHistory(),
@@ -44,6 +49,7 @@ function getInitialState() {
 function App() {
   const [initialState] = useState(getInitialState)
   const [theme, setTheme] = useState<ThemeMode>(initialState.theme)
+  const [language, setLanguage] = useState(initialState.language)
   const [taskName, setTaskName] = useState(initialState.taskName)
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(initialState.activeSession)
   const [history, setHistory] = useState<HistoryEntry[]>(initialState.history)
@@ -55,6 +61,14 @@ function App() {
 
     writeTheme(theme)
   }, [theme])
+
+  useEffect(() => {
+    if (language) {
+      document.documentElement.lang = language
+      // persist selection in cookies
+      writeLanguage(language)
+    }
+  }, [language])
 
   useEffect(() => {
     if (activeSession) {
@@ -132,7 +146,7 @@ function App() {
       return
     }
 
-    const confirmed = window.confirm('Delete the full Hookie history from this browser?')
+    const confirmed = window.confirm(t('confirmDeleteHistory', language))
 
     if (!confirmed) {
       return
@@ -149,35 +163,37 @@ function App() {
 
       <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
         <header className="surface mb-6 flex flex-col gap-6 px-6 py-6 sm:px-8 lg:flex-row lg:items-start lg:justify-between">
-          <div className="max-w-2xl">
-            <p className="eyebrow">Browser-native time tracking</p>
+            <div className="max-w-2xl">
+            <p className="eyebrow">{t('eyebrow', language)}</p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <span className="display-face text-4xl font-semibold tracking-[-0.08em] text-slate-950 dark:text-white sm:text-5xl">
                 Hookie
               </span>
               <span className="rounded-full border border-slate-300/70 bg-white/65 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500 dark:border-white/10 dark:bg-white/6 dark:text-slate-300">
-                Cookie state
+                {t('cookieState', language)}
               </span>
             </div>
             <p className="mt-4 max-w-xl text-sm leading-7 text-slate-600 dark:text-slate-300">
-              Track one task at a time, recover instantly after refresh, and keep an
-              exportable local history without leaving the browser.
+              {t('introParagraph', language)}
             </p>
           </div>
 
           <div className="flex flex-col items-start gap-4 lg:items-end">
-            <ThemeToggle mode={theme} onToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')} />
+            <div className="flex gap-3">
+              <ThemeToggle mode={theme} onToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')} language={language} />
+              <LanguageToggle language={language} onToggle={() => setLanguage(language === 'en' ? 'de' : 'en')} />
+            </div>
             <div className="surface-muted w-full min-w-72 px-4 py-4 text-left lg:max-w-sm">
               <p className="mono-face text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
-                Last completed
+                {t('lastCompleted', language)}
               </p>
               <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
-                {latestEntry ? latestEntry.taskName : 'No completed sessions yet'}
+                {latestEntry ? latestEntry.taskName : t('noCompleted', language)}
               </p>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
                 {latestEntry
-                  ? `${formatDuration(latestEntry.durationMs)} finished at ${formatDateTime(latestEntry.endTimestamp)}`
-                  : 'Start your first task to build up a lightweight personal timeline.'}
+                  ? `${formatDuration(latestEntry.durationMs)} ${t('finishedAt', language)} ${formatDateTime(latestEntry.endTimestamp)}`
+                  : t('startFirst', language)}
               </p>
             </div>
           </div>
@@ -192,36 +208,37 @@ function App() {
             onTaskNameChange={setTaskName}
             onStart={handleStart}
             onStop={handleStop}
+            language={language}
           />
 
           <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
             <article className="stat-tile">
-              <p className="eyebrow">Completed sessions</p>
+              <p className="eyebrow">{t('completedSessions', language)}</p>
               <p className="display-face mt-5 text-4xl font-semibold text-slate-950 dark:text-white">
                 {history.length}
               </p>
               <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-                Hookie keeps the newest entries in cookies so refresh recovery stays fast.
+                {t('completedSessionsDesc', language)}
               </p>
             </article>
 
             <article className="stat-tile">
-              <p className="eyebrow">Tracked time</p>
+              <p className="eyebrow">{t('trackedTime', language)}</p>
               <p className="display-face mt-5 text-4xl font-semibold text-slate-950 dark:text-white">
                 {formatDuration(totalTrackedMs)}
               </p>
               <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-                Total across completed tasks in the current browser profile.
+                {t('trackedTimeDesc', language)}
               </p>
             </article>
 
             <article className="stat-tile">
-              <p className="eyebrow">Closed today</p>
+              <p className="eyebrow">{t('closedToday', language)}</p>
               <p className="display-face mt-5 text-4xl font-semibold text-slate-950 dark:text-white">
                 {completedToday}
               </p>
               <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-                A quick signal for momentum without introducing extra dashboards.
+                {t('closedTodayDesc', language)}
               </p>
             </article>
           </div>
@@ -232,6 +249,7 @@ function App() {
           totalTrackedMs={totalTrackedMs}
           onExport={handleExport}
           onClear={handleClearHistory}
+          language={language}
         />
       </main>
     </div>
