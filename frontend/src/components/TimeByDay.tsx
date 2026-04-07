@@ -1,5 +1,4 @@
-import React from 'react'
-import { formatDuration, formatShortDate } from '../utils/time'
+import { formatDuration } from '../utils/time'
 import type { HistoryEntry, ActiveSession } from '../utils/cookies'
 
 function progressGradient(percent: number) {
@@ -12,7 +11,6 @@ function progressGradient(percent: number) {
 
 type Props = {
   history: HistoryEntry[]
-  days?: number
   now?: number
   language?: string
   activeSession?: ActiveSession | null
@@ -20,7 +18,7 @@ type Props = {
   workdays?: Record<'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun', number>
 }
 
-export default function TimeByDay({ history, days = 7, now = Date.now(), language, activeSession, elapsedMs = 0, workdays }: Props) {
+export default function TimeByDay({ history, now = Date.now(), language, activeSession, elapsedMs = 0, workdays }: Props) {
   const dayMs: Record<string, number> = {}
 
   for (const entry of history) {
@@ -61,7 +59,7 @@ export default function TimeByDay({ history, days = 7, now = Date.now(), languag
   const displayedDays = daysArr.filter((d) => (d.workHours ?? 0) > 0)
   const maxMs = Math.max(...displayedDays.map((d) => d.ms), 1)
   // compute max target ms across week to have consistent scaling
-  const maxTargetMs = Math.max(...['mon','tue','wed','thu','fri','sat','sun'].map((k, i) => {
+  const maxTargetMs = Math.max(...['mon','tue','wed','thu','fri','sat','sun'].map((k) => {
     const dayKey = k as 'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun'
     const hrs = (workdays && (workdays as any)[dayKey]) ?? 0
     return hrs * 3_600_000
@@ -76,7 +74,6 @@ export default function TimeByDay({ history, days = 7, now = Date.now(), languag
       <p className="eyebrow">{language === 'de' ? 'Zeit pro Tag (Woche)' : 'Time per day (week)'}</p>
       <div className="mt-3 flex gap-3 items-end justify-center w-full">
         {displayedDays.map((d, idx) => {
-          const dayKey = d.dayKey
           const targetHours = d.workHours ?? 0
           const targetMs = targetHours * 3_600_000
           const achievedHeight = Math.round((d.ms / scaleMax) * 80)
