@@ -32,8 +32,6 @@ import { downloadHistory } from './utils/export'
 import { formatDateTime, formatDuration, getElapsedDuration } from './utils/time'
 import { formatLocalYMD } from './utils/date'
 
-const DAY_IN_MS = 86_400_000
-
 function getSystemTheme(): ThemeMode {
   if (typeof window === 'undefined') {
     return 'dark'

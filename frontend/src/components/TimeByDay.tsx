@@ -66,15 +66,6 @@ export default function TimeByDay({ history, now = Date.now(), language, activeS
     return hrs * 3_600_000
   }), 0)
   const scaleMax = Math.max(maxMs, maxTargetMs, 1)
-  const labels = [
-    t('dayShortMon', language ?? 'en'),
-    t('dayShortTue', language ?? 'en'),
-    t('dayShortWed', language ?? 'en'),
-    t('dayShortThu', language ?? 'en'),
-    t('dayShortFri', language ?? 'en'),
-    t('dayShortSat', language ?? 'en'),
-    t('dayShortSun', language ?? 'en'),
-  ]
 
   const labelMap: Record<'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun', string> = {
     mon: t('dayShortMon', language ?? 'en'),
@@ -90,7 +81,7 @@ export default function TimeByDay({ history, now = Date.now(), language, activeS
     <article className="stat-tile">
       <p className="eyebrow">{t('timePerDayWeek', language ?? 'en')}</p>
       <div className="mt-5 grid w-full grid-flow-col auto-cols-[minmax(4.75rem,1fr)] gap-3 overflow-x-auto pb-2 sm:gap-4">
-        {displayedDays.map((d, idx) => {
+        {displayedDays.map((d) => {
           const targetHours = d.workHours ?? 0
           const targetMs = targetHours * 3_600_000
           const achievedHeight = Math.round((d.ms / scaleMax) * 80)
