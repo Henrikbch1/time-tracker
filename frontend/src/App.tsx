@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { HistoryPanel } from './components/HistoryPanel'
 // Theme and language toggles moved to Settings
 import { TrackerCard } from './components/TrackerCard'
-import TagsManager from './components/TagsManager'
 import TagSummary from './components/TagSummary'
 import Settings from './components/Settings'
 import { useInterval } from './hooks/useInterval'

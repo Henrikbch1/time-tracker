@@ -1,7 +1,6 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { ThemeToggle } from './ThemeToggle'
 import LanguageToggle from './LanguageToggle'
-import TagsManager from './TagsManager'
 import type { Tag, Language } from '../utils/cookies'
 import t from '../i18n'
 
