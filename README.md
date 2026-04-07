@@ -1,10 +1,12 @@
 # TimeTracker
 
-[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-0.1.0-lightgrey.svg)](frontend/package.json) [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-deployed-brightgreen.svg)](https://Henrikbch1.github.io/time-tracker/)
+[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-0.2.0-lightgrey.svg)](frontend/package.json) [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-deployed-brightgreen.svg)](https://Henrikbch1.github.io/time-tracker/)
 
 Elegant, leichtgewichtiger Time-Tracker — Single-Page-App mit React, TypeScript und Vite.
 
 **Kurz:** Diese Repo enthält ein Frontend im Ordner `frontend/`, das mit Vite, React und Tailwind gebaut wird. Die Seite kann per GitHub Pages deployed werden (siehe `frontend/package.json`).
+
+Hinweis: Theme (Dark/Light), Sprache und Tag-Management werden jetzt über die interne `Settings`-Seite gesteuert (oberer `Settings`-Button in der UI). Mobile Layout-Verbesserungen wurden vorgenommen, damit Tag-Erstellung und Einstellungen auf kleinen Bildschirmen besser nutzbar sind.
 
 **Highlights**
 - **Tech:** React, TypeScript, Vite, Tailwind

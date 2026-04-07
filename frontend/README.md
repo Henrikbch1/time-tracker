@@ -7,49 +7,48 @@ Currently, two official plugins are available:
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## React Compiler
+# Frontend (React + TypeScript + Vite)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Dieses Verzeichnis enthält die React-/TypeScript-Frontend-Anwendung, gebaut mit Vite und Tailwind.
 
-## Expanding the ESLint configuration
+Schnellstart (Entwicklung):
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+cd frontend
+npm ci
+npm run dev
+# öffne http://localhost:5173 oder den in der Konsole angezeigten Vite-Port
+```
 
-```js
-export default defineConfig([
-  # TimeTracker — Frontend
+Build & Vorschau:
 
-  Dieses Verzeichnis enthält die React-/TypeScript-Frontend-Anwendung, gebaut mit Vite.
+```bash
+npm run build
+npm run preview
+```
 
-  Kurze Anleitung (Entwicklung):
+Deploy (GitHub Pages):
 
-  ```bash
-  cd frontend
-  npm ci
-  npm run dev
-  # öffne http://localhost:5173
-  ```
+```bash
+npm run deploy
+```
 
-  Build & Deploy:
+Wichtige Hinweise für diese Codebasis
+- Theme (Dark/Light), Sprache und Tag-Management sind über die In-App `Settings` erreichbar (oben rechts über den `Settings`-Button).
+- Mobile: Formulare und Tag-Manager wurden für kleine Bildschirme optimiert (gestapelte Eingaben, horizontales Scrollen für Tag-Chips).
 
-  ```bash
-  npm run build
-  npm run preview
-  # Für GitHub Pages (bereits eingerichtet):
-  npm run deploy
-  ```
+Wichtige Dateien:
+- `src/` — Quellcode (Components, Hooks, Utils)
+- `index.html` — App-Entry
+- `vite.config.ts` — Vite-Konfiguration
+- `tsconfig.*.json` — TypeScript-Konfigurationen
 
-  Wichtige Dateien:
-  - `src/` — Quellcode (Components, Hooks, Utils)
-  - `index.html` — App-Entry
-  - `vite.config.ts` — Vite-Konfiguration
-  - `tsconfig.*.json` — TypeScript-Konfigurationen
+Empfehlungen:
+- Linting: `npm run lint`
+- Falls du die App lokal testen willst, achte auf den in der Konsole angezeigten Vite-Port (standardmäßig 5173, kann variieren).
 
-  Tipps:
-  - Linting: `npm run lint`
-  - Die `homepage` in dieser `package.json` zeigt auf die GitHub-Pages-URL.
+Support
+- Für Issues oder Feature-Requests öffne ein Issue im Repository oder erstell einen PR mit einer klaren Beschreibung und Schritten zur Reproduktion.
 
-  Falls du Screenshots oder ein Demo-GIF hinzufügen möchtest, lege sie in `frontend/public/` ab und verlinke sie in der Root-`README.md`.
-
+Viel Erfolg beim Entwickeln!
   Viel Erfolg beim Entwickeln — öffne gern ein Issue oder sende einen PR bei Fragen oder Verbesserungen.
-  {
