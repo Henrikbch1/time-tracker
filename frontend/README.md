@@ -1,54 +1,55 @@
-# React + TypeScript + Vite
+# Frontend — React + TypeScript + Vite (Version 0.4.1)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Dieses Verzeichnis enthält die React-Frontend-Anwendung (Vite + TypeScript + Tailwind).
 
-Currently, two official plugins are available:
+Kurzer Überblick
+- Version: 0.4.1 (siehe `package.json`)
+- Entrypoint: `frontend/src/main.tsx`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-# Frontend (React + TypeScript + Vite)
-
-Dieses Verzeichnis enthält die React-/TypeScript-Frontend-Anwendung, gebaut mit Vite und Tailwind.
-
-Schnellstart (Entwicklung):
+Schnellstart (Entwicklung)
 
 ```bash
 cd frontend
 npm ci
 npm run dev
-# öffne http://localhost:5173 oder den in der Konsole angezeigten Vite-Port
+# öffne http://localhost:5173 oder den in der Konsole angezeigten Port
 ```
 
-Build & Vorschau:
+Build & Vorschau
 
 ```bash
 npm run build
 npm run preview
 ```
 
-Deploy (GitHub Pages):
+Deploy (GitHub Pages)
 
 ```bash
 npm run deploy
 ```
 
-Wichtige Hinweise für diese Codebasis
-- Theme (Dark/Light), Sprache und Tag-Management sind über die In-App `Settings` erreichbar (oben rechts über den `Settings`-Button).
-- Mobile: Formulare und Tag-Manager wurden für kleine Bildschirme optimiert (gestapelte Eingaben, horizontales Scrollen für Tag-Chips).
+Wichtige Hinweise
+- Einstellungen (Theme, Sprache, Tags) sind in der App unter `Settings` verfügbar.
+- Mobile-Optimierungen: Tag-Management und Formulare sind für kleine Bildschirme verbessert.
 
-Wichtige Dateien:
-- `src/` — Quellcode (Components, Hooks, Utils)
-- `index.html` — App-Entry
+Wichtige Dateien
+- `src/` — Komponenten, Hooks, Utils
+- `public/` — statische Assets (Icons, favicon)
 - `vite.config.ts` — Vite-Konfiguration
-- `tsconfig.*.json` — TypeScript-Konfigurationen
+- `index.html` — HTML-Template
 
-Empfehlungen:
-- Linting: `npm run lint`
-- Falls du die App lokal testen willst, achte auf den in der Konsole angezeigten Vite-Port (standardmäßig 5173, kann variieren).
+Scripts
+- `npm run dev` — Startet Vite im Dev-Modus
+- `npm run build` — Transpiliert und baut die Produktionsassets
+- `npm run preview` — Vorschau des Build-Outputs
+- `npm run deploy` — Deploy via `gh-pages` (erst `npm run build`)
+- `npm run lint` — ESLint prüfen
+
+Empfehlungen
+- Nutze `npm ci` für reproduzierbare Builds
+- Prüfe Linter/TypeScript-Fehler vor PRs
 
 Support
-- Für Issues oder Feature-Requests öffne ein Issue im Repository oder erstell einen PR mit einer klaren Beschreibung und Schritten zur Reproduktion.
+- Issues und PRs sind willkommen — bitte beschreibe Probleme, Schritte zur Reproduktion und erwünschtes Verhalten.
 
 Viel Erfolg beim Entwickeln!
-  Viel Erfolg beim Entwickeln — öffne gern ein Issue oder sende einen PR bei Fragen oder Verbesserungen.

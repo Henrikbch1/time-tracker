@@ -2,65 +2,67 @@
 
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-0.4.1-lightgrey.svg)](frontend/package.json) [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-deployed-brightgreen.svg)](https://Henrikbch1.github.io/time-tracker/)
 
-Elegant, leichtgewichtiger Time-Tracker — Single-Page-App mit React, TypeScript und Vite.
+Ein leichtgewichtiges Single-Page-Frontend zur Erfassung und Auswertung von Arbeitszeit — gebaut mit React, TypeScript, Vite und Tailwind.
 
-**Kurz:** Diese Repo enthält ein Frontend im Ordner `frontend/`, das mit Vite, React und Tailwind gebaut wird. Die Seite kann per GitHub Pages deployed werden (siehe `frontend/package.json`).
+**Kurz:** Dieses Repository enthält die Frontend-Anwendung im Ordner `frontend/`. Die App lässt sich lokal entwickeln, bauen und per GitHub Pages deployen.
 
-Hinweis: Theme (Dark/Light), Sprache und Tag-Management werden jetzt über die interne `Settings`-Seite gesteuert (oberer `Settings`-Button in der UI). Mobile Layout-Verbesserungen wurden vorgenommen, damit Tag-Erstellung und Einstellungen auf kleinen Bildschirmen besser nutzbar sind.
+**Aktueller Release:** 0.4.1 — Verbesserte Statistiken, Einstellungen und Mobile-Optimierungen.
 
-**Highlights**
-- **Tech:** React, TypeScript, Vite, Tailwind
-- **Deployment:** GitHub Pages (Script: `frontend/package.json`)
-- **Architektur:** Kleine Komponentenstruktur, Hooks und Utility-Module
+**Wichtigste Neuerungen (0.4.1)**
+- Wochen-Ansicht: Balkendiagramm "Zeit pro Tag (Woche)" mit Ziel-Linie pro Tag.
+- Tagesziele: `Daily target` und stundenweise Vorgaben pro Wochentag in den Einstellungen.
+- Fortschrittsanzeige: Farbige Balken (Rot→Grün) zeigen Zielerreichung.
+- Task-Statistik: Kreisdiagramm zeigt Zeitaufwand pro Aufgabe.
+- Mobile: Verbesserte Eingabe- und Tag-UI für kleine Bildschirme.
 
-**Neu (Statistiken & Einstellungen)**
-- Wochen-Ansicht: Balkendiagramm "Zeit pro Tag (Woche)" zeigt die Gesamtzeit pro Arbeitstag (Mo–So) und eine Ziel-Linie pro Tag.
-- Tagesziele: In den `Settings` lässt sich ein `Daily target` und für jeden Wochentag die erwartete Arbeitszeit (Stunden) einstellen.
-- Fortschritt: Balken sind farbcodiert nach Fortschritt (Rot→Orange→Gelb→Grün) und zeigen Prozent-Erreichung des Tagesziels.
-- Task-Statistik: Kreisdiagramm "Time per task" zeigt, wie viel Zeit pro Aufgabe verbracht wurde.
-- Settings: Änderungen werden persistiert (Cookies) und der Save-Button gibt visuelles Feedback ("Saved").
-- Validierung: Stunden-Eingaben werden auf 0–24 geclampet; negative Werte werden nicht akzeptiert.
-
-**Schnellstart**
-1. Öffne ein Terminal im `frontend`-Ordner
-2. Installieren:
+**Schnellstart (lokal)**
+1. Terminal öffnen und ins Frontend-Verzeichnis wechseln
 
 ```bash
 cd frontend
 npm ci
 ```
 
-3. Lokal entwickeln:
+2. Entwicklung starten
 
 ```bash
 npm run dev
-# öffne http://localhost:5173
+# öffne http://localhost:5173 oder den in der Konsole angezeigten Port
 ```
 
-4. Build & Vorschau:
+3. Build & Vorschau
 
 ```bash
 npm run build
 npm run preview
 ```
 
-5. Deploy zu GitHub Pages:
+4. Deploy zu GitHub Pages
 
 ```bash
 npm run deploy
 ```
 
-**Badge-Übersicht**
-- Lizenz: GNU GPLv3
-- Version: aus `frontend/package.json`
-- GitHub Pages: deployed (siehe `homepage` in `frontend/package.json`)
+**Projektstruktur (Kurzüberblick)**
+- `frontend/` — React-Anwendung
+- `frontend/src/` — Komponenten, Hooks, Utilities
+- `frontend/public/` — statische Assets (Icons, favicon)
+- `frontend/package.json` — App-Metadaten & Scripts
+- Root: `package.json` (Repo-Metadaten), `package-lock.json`, `README.md`
+
+**Wichtige Hinweise**
+- Einstellungen (Theme, Sprache, Tags) sind in der App unter `Settings` verfügbar.
+- Linting: `npm run lint` (im `frontend`-Ordner).
 
 **Mithelfen**
-- Issues anlegen für Fehler oder Feature-Wünsche
-- Pull Requests: Fork → Branch → PR (gutes PR-Format: Problem, Lösung, Tests)
+- Issues für Fehler/Feature-Wünsche öffnen.
+- PR-Workflow: Fork → Branch → PR mit Beschreibung und, falls möglich, Reproduktions-/Testschritten.
+
+**CHANGELOG (Kurz)**
+- 0.4.1 — Statistik- und Settings-Updates, Mobile-Verbesserungen.
 
 **Lizenz**
 Dieses Projekt steht unter der [GPL-3.0](LICENSE).
 
 ---
-Für detailliertere Entwickler-Infos siehe [frontend/README.md](frontend/README.md).
+Für Entwickler-Details siehe die Frontend-spezifische Anleitung: [frontend/README.md](frontend/README.md).
