@@ -74,7 +74,7 @@ export default function TimeByDay({ history, days = 7, now = Date.now(), languag
   return (
     <article className="stat-tile">
       <p className="eyebrow">{language === 'de' ? 'Zeit pro Tag (Woche)' : 'Time per day (week)'}</p>
-      <div className="mt-3 flex gap-3 items-end" style={{ alignItems: 'flex-end' }}>
+      <div className="mt-3 flex gap-3 items-end justify-center w-full">
         {displayedDays.map((d, idx) => {
           const dayKey = d.dayKey
           const targetHours = d.workHours ?? 0
@@ -101,7 +101,7 @@ export default function TimeByDay({ history, days = 7, now = Date.now(), languag
           )
         })}
       </div>
-      <div className="mt-3 text-xs text-slate-600 dark:text-slate-300">{language === 'de' ? 'Mon–So' : 'Mon–Sun'}</div>
+      <div className="mt-3 text-xs text-slate-600 dark:text-slate-300 w-full text-center">{language === 'de' ? 'Mon–So' : 'Mon–Sun'}</div>
     </article>
   )
 }

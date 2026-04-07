@@ -73,8 +73,8 @@ export default function PieByTask({ totalsByTask, totalMs, size = 220, language 
 
   return (
     <article className="stat-tile">
-      <p className="eyebrow">{language ? 'Zeit pro Task' : 'Time per task'}</p>
-      <div className="mt-4 flex gap-4">
+      <p className="eyebrow text-center">{language ? 'Zeit pro Task' : 'Time per task'}</p>
+      <div className="mt-4 flex flex-col sm:flex-row gap-4 items-center justify-center w-full">
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
           {slices.map((s, i) => (
             <path key={s.taskName + i} d={describeArc(cx, cy, r, s.startAngle, s.endAngle)} fill={s.color} />
