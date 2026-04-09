@@ -1,68 +1,92 @@
-# TimeTracker
+# Time Tracker
 
-[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-0.4.2-lightgrey.svg)](frontend/package.json) [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-deployed-brightgreen.svg)](https://Henrikbch1.github.io/time-tracker/)
+[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-0.4.3-lightgrey.svg)](frontend/package.json)
 
-Ein leichtgewichtiges Single-Page-Frontend zur Erfassung und Auswertung von Arbeitszeit — gebaut mit React, TypeScript, Vite und Tailwind.
+Eine leichte, im Browser laufende Anwendung zur Erfassung und Auswertung von Arbeitszeit. Die Benutzeroberfläche ist als Single-Page-App mit React + TypeScript erstellt und liegt im Ordner `frontend/`.
 
-**Kurz:** Dieses Repository enthält die Frontend-Anwendung im Ordner `frontend/`. Die App lässt sich lokal entwickeln, bauen und per GitHub Pages deployen.
+Inhaltsverzeichnis
 
-**Aktueller Release:** 0.4.2 — Verbesserte Statistiken, Einstellungen und Mobile-Optimierungen.
+- [Projektüberblick](#projektüberblick)
+- [Features](#features)
+- [Technologien](#technologien)
+- [Schnellstart](#schnellstart)
+- [Frontend](#frontend)
+- [Projektstruktur](#projektstruktur)
+- [Mitmachen](#mitmachen)
+- [Lizenz](#lizenz)
 
-**Wichtigste Neuerungen (0.4.2)**
-- Wochen-Ansicht: Balkendiagramm "Zeit pro Tag (Woche)" mit Ziel-Linie pro Tag.
-- Tagesziele: `Daily target` und stundenweise Vorgaben pro Wochentag in den Einstellungen.
-- Fortschrittsanzeige: Farbige Balken (Rot→Grün) zeigen Zielerreichung.
-- Task-Statistik: Kreisdiagramm zeigt Zeitaufwand pro Aufgabe.
-- Mobile: Verbesserte Eingabe- und Tag-UI für kleine Bildschirme.
+## Projektüberblick
 
-**Schnellstart (lokal)**
-1. Terminal öffnen und ins Frontend-Verzeichnis wechseln
+`Time Tracker` ermöglicht das einfache Erfassen von Arbeitszeiten pro Aufgabe, das Anzeigen von Tages- und Wochenübersichten sowie einfache Auswertungen (z. B. Zeit pro Aufgabe). Die App ist lokal ausführbar, offline-fähig und speichert Einstellungen im Browser.
+
+- ## Features
+
+- Erfassen von Start/Stop-Zeiten
+- Manuelle Zeiteinträge: aktuell nicht über ein Formular möglich (nur automatische Tracking- bzw. Bearbeitungsfunktionen)
+- Übersicht: Zeit pro Tag, Woche und pro Aufgabe (Kreis-/Balkendiagramme)
+- Einstellbare Tagesziele und Theme-Support (hell/dunkel)
+- Tag-Management und Export: aktuell wird ein einfacher `.txt`-Export verwendet
+- Mehrsprachigkeit (i18n)
+
+## Technologien
+
+- Frontend: React, TypeScript, Vite
+- Styling: Tailwind CSS
+- Build & Dev: npm, Vite
+
+## Schnellstart
+
+1. Ins Frontend-Verzeichnis wechseln
 
 ```bash
 cd frontend
-npm ci
+npm install
 ```
 
 2. Entwicklung starten
 
 ```bash
 npm run dev
-# öffne http://localhost:5173 oder den in der Konsole angezeigten Port
+# Öffne die angezeigte lokale URL (z. B. http://localhost:5173)
 ```
 
-3. Build & Vorschau
+3. Produktion bauen
 
 ```bash
 npm run build
 npm run preview
 ```
 
-4. Deploy zu GitHub Pages
+4. Deploy (GitHub Pages)
+
+Die App kann mit dem vorhandenen `deploy`-Script per `gh-pages` nach GitHub Pages deployt werden. Ablauf:
 
 ```bash
-npm run deploy
+npm run build   # erstellt das Production-Bundle in `dist`
+npm run deploy  # nutzt `gh-pages -d dist`, push zu gh-pages-Branch
 ```
 
-**Projektstruktur (Kurzüberblick)**
-- `frontend/` — React-Anwendung
-- `frontend/src/` — Komponenten, Hooks, Utilities
-- `frontend/public/` — statische Assets (Icons, favicon)
-- `frontend/package.json` — App-Metadaten & Scripts
-- Root: `package.json` (Repo-Metadaten), `package-lock.json`, `README.md`
+Stelle sicher, dass das Remote-Repository korrekt konfiguriert ist und der `homepage`-Eintrag in `frontend/package.json` auf die GitHub Pages URL zeigt.
 
-**Wichtige Hinweise**
-- Einstellungen (Theme, Sprache, Tags) sind in der App unter `Settings` verfügbar.
-- Linting: `npm run lint` (im `frontend`-Ordner).
+## Frontend
 
-**Mithelfen**
-- Issues für Fehler/Feature-Wünsche öffnen.
-- PR-Workflow: Fork → Branch → PR mit Beschreibung und, falls möglich, Reproduktions-/Testschritten.
+Die Frontend-spezifischen Details und Anweisungen stehen in der Frontend-README: [frontend/README.md](frontend/README.md).
 
-**CHANGELOG (Kurz)**
-- 0.4.2 — Statistik- und Settings-Updates, Mobile-Verbesserungen.
+## Projektstruktur
 
-**Lizenz**
+- `frontend/` — React-Anwendung (Quellcode, Assets, Scripts)
+- `LICENSE` — Lizenzdatei (GPL-3.0)
+- `README.md` — Diese Datei
+
+## Mitmachen
+
+- Öffne Issues für Fehler oder Featurewünsche
+- Fork → Branch → PR, bitte mit Beschreibung und Reproduktionsschritten
+
+## Lizenz
+
 Dieses Projekt steht unter der [GPL-3.0](LICENSE).
 
 ---
-Für Entwickler-Details siehe die Frontend-spezifische Anleitung: [frontend/README.md](frontend/README.md).
+
+Wenn du möchtest, kann ich jetzt noch die `frontend/README.md` ausführlicher kommentieren oder die Anleitung für das Deployment anpassen.

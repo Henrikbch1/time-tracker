@@ -1,55 +1,75 @@
-# Frontend — React + TypeScript + Vite (Version 0.4.1)
+# Frontend — React + TypeScript + Vite
 
-Dieses Verzeichnis enthält die React-Frontend-Anwendung (Vite + TypeScript + Tailwind).
+Dieses Verzeichnis enthält die Frontend-Anwendung der `Time Tracker`-App. Die folgenden Hinweise helfen beim lokalen Entwickeln, Bauen und Deployen.
 
-Kurzer Überblick
-- Version: 0.4.1 (siehe `package.json`)
-- Entrypoint: `frontend/src/main.tsx`
+Inhaltsverzeichnis
 
-Schnellstart (Entwicklung)
+- [Kurzüberblick](#kurzüberblick)
+- [Schnellstart](#schnellstart)
+- [Wichtige Scripts](#wichtige-scripts)
+- [Projektstruktur](#projektstruktur)
+- [Entwicklung & Debugging](#entwicklung--debugging)
+- [Build & Deploy](#build--deploy)
+- [Internationale Unterstützung (i18n)](#internationale-unterst%C3%BCtzung-i18n)
+- [Mitwirken](#mitwirken)
+
+## Kurzüberblick
+
+- Version: 0.4.3 (siehe `package.json`)
+- Entrypoint: `src/main.tsx`
+
+Hinweis: Styling erfolgt mit Tailwind CSS.
+
+Aktueller Status: Export ist derzeit als einfacher `.txt`-Export implementiert; eine dedizierte manuelle Zeiteingabe (Formular) ist aktuell nicht vorhanden.
+
+## Schnellstart
 
 ```bash
 cd frontend
 npm ci
 npm run dev
-# öffne http://localhost:5173 oder den in der Konsole angezeigten Port
+# Öffne die in der Konsole angezeigte URL (z. B. http://localhost:5173)
 ```
 
-Build & Vorschau
+npm install
 
-```bash
-npm run build
-npm run preview
-```
-
-Deploy (GitHub Pages)
-
-```bash
-npm run deploy
-```
-
-Wichtige Hinweise
-- Einstellungen (Theme, Sprache, Tags) sind in der App unter `Settings` verfügbar.
-- Mobile-Optimierungen: Tag-Management und Formulare sind für kleine Bildschirme verbessert.
-
-Wichtige Dateien
-- `src/` — Komponenten, Hooks, Utils
-- `public/` — statische Assets (Icons, favicon)
-- `vite.config.ts` — Vite-Konfiguration
-- `index.html` — HTML-Template
-
-Scripts
-- `npm run dev` — Startet Vite im Dev-Modus
-- `npm run build` — Transpiliert und baut die Produktionsassets
-- `npm run preview` — Vorschau des Build-Outputs
-- `npm run deploy` — Deploy via `gh-pages` (erst `npm run build`)
+- `npm run dev` — Startet Vite im Entwicklungsmodus
+- `npm run build` — Baut Produktionsassets
+- `npm run preview` — Vorschau des Builds
+- `npm run deploy` — Deploy (z. B. über `gh-pages` nach erstem Build)
 - `npm run lint` — ESLint prüfen
+## Build & Deploy
 
-Empfehlungen
-- Nutze `npm ci` für reproduzierbare Builds
-- Prüfe Linter/TypeScript-Fehler vor PRs
+## Projektstruktur
 
-Support
-- Issues und PRs sind willkommen — bitte beschreibe Probleme, Schritte zur Reproduktion und erwünschtes Verhalten.
+- `src/` — React-Komponenten, Hooks, Utilities
+  - `components/` — UI-Komponenten (TrackerCard, Settings, Panels)
+Hinweis: `npm install` ist üblich; `npm ci` ist optional für strikt reproduzierbare Installs wenn du eine `package-lock.json` verwendest.
+  - `utils/` — Hilfsfunktionen für Datum, Zeit, Export, Cookies
+- `public/` — statische Assets (Icons, favicon)
+- `index.html` — HTML-Template
+- `vite.config.ts` — Vite-Konfiguration
 
-Viel Erfolg beim Entwickeln!
+## Entwicklung & Debugging
+
+- Starte `npm run dev` und verwende die Browser-Devtools für Debugging
+- Prüfe TypeScript- und Linter-Warnungen vor dem Commit
+
+## Build & Deploy
+
+1. `npm run build`
+2. `npm run preview` zur lokalen Kontrolle
+3. `npm run deploy` (falls eingerichtet, z. B. mit `gh-pages`)
+
+Hinweis: Für reproduzierbare Builds `npm ci` verwenden.
+
+## Internationale Unterstützung (i18n)
+
+Die App enthält Mehrsprachigkeit; Texte werden über die i18n-Integration geladen. Beim Hinzufügen neuer Texte bitte die Übersetzungsdateien aktualisieren.
+
+## Mitwirken
+
+- Issues melden für Fehler oder Featurevorschläge
+- PRs mit klarer Beschreibung, Tests/Schritten zur Überprüfung willkommen
+
+Bei Bedarf kann ich noch eine Schritt-für-Schritt-Anleitung für das Deployment (GitHub Pages) ergänzen oder die `package.json`-Scripts überprüfen.
