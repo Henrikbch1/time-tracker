@@ -1,15 +1,48 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --font-display: 'Sora', 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', 'Cascadia Code', monospace;
+  --font-display: "Sora", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Code", monospace;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (max-width: 480px) {
+  /* Reduce padding and compact several components for small phones */
+  .stat-tile {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+
+  .action-button {
+    padding-left: 0.6rem !important;
+    padding-right: 0.6rem !important;
+  }
+
+  .surface-muted {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  /* Force smaller, fluid charts */
+  svg[viewBox] {
+    width: 100% !important;
+    max-width: 220px !important;
+    height: auto !important;
+  }
+
+  /* Tighter tag pills */
+  .surface-muted .inline-flex.px-2.py-1 {
+    padding-left: 0.4rem !important;
+    padding-right: 0.4rem !important;
+  }
 }
 
 html {

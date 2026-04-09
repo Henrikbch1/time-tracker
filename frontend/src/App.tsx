@@ -262,13 +262,13 @@ function App() {
             </p>
           </div>
 
-          <div className="flex flex-col items-start gap-4 lg:items-end">
+            <div className="flex flex-col items-start gap-4 lg:items-end">
             <div className="flex gap-3">
               <button type="button" onClick={openSettings} className="action-button">
                 {t('settings', language)}
               </button>
             </div>
-            <div className="surface-muted w-full min-w-72 px-4 py-4 text-left lg:max-w-sm">
+            <div className="surface-muted w-full min-w-0 px-4 py-4 text-left lg:max-w-sm">
               <p className="mono-face text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
                 {t('lastCompleted', language)}
               </p>
@@ -284,7 +284,7 @@ function App() {
           </div>
         </header>
 
-        <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+        <section className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
           <TrackerCard
             taskName={taskName}
             isRunning={Boolean(activeSession)}
@@ -299,7 +299,7 @@ function App() {
             language={language}
           />
 
-          <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-1">
+          <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-1 min-w-0">
             <article className="stat-tile">
               <p className="eyebrow">{t('completedSessions', language)}</p>
               <p className="display-face mt-5 text-4xl font-semibold text-slate-950 dark:text-white">
@@ -330,11 +330,11 @@ function App() {
               </p>
             </article>
           </div>
-          <div className="xl:col-span-2">
+          <div className="xl:col-span-2 min-w-0">
             <TagSummary tags={tags} totalsByTag={totalsByTag} language={language} />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:col-span-2 2xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+          <div className="grid gap-4 md:grid-cols-2 xl:col-span-2 2xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] min-w-0">
             <PieByTask totalsByTask={totalsByTask} totalMs={totalTrackedMs + (activeSession ? elapsedMs : 0)} language={language} />
             <TimeByDay history={history} now={now} language={language} activeSession={activeSession} elapsedMs={elapsedMs} workdays={workdays} />
           </div>

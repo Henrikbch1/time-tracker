@@ -76,7 +76,7 @@ export default function PieByTask({ totalsByTask, totalMs, size = 220, language 
     <article className="stat-tile">
       <p className="eyebrow text-center">{t('pie_title', language ?? 'en')}</p>
       <div className="mt-5 flex w-full flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <svg viewBox={`0 0 ${size} ${size}`} className="mx-auto h-44 w-44 sm:h-56 sm:w-56 md:h-64 md:w-64 lg:mx-0 lg:flex-none" aria-hidden>
+        <svg viewBox={`0 0 ${size} ${size}`} className="mx-auto w-full max-w-[220px] h-auto lg:mx-0 lg:flex-none" aria-hidden>
           {slices.map((s, i) => (
             <path key={s.taskName + i} d={describeArc(cx, cy, r, s.startAngle, s.endAngle)} fill={s.color} />
           ))}
