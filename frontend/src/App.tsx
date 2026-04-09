@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
-import { HistoryPanel } from './components/HistoryPanel'
+import { useEffect, useState } from "react";
+import { HistoryPanel } from "./components/HistoryPanel";
 // Theme and language toggles moved to Settings
-import { TrackerCard } from './components/TrackerCard'
-import TagSummary from './components/TagSummary'
-import PieByTask from './components/PieByTask'
-import TimeByDay from './components/TimeByDay'
-import Settings from './components/Settings'
-import { useInterval } from './hooks/useInterval'
+import { TrackerCard } from "./components/TrackerCard";
+import TagSummary from "./components/TagSummary";
+import PieByTask from "./components/PieByTask";
+import TimeByDay from "./components/TimeByDay";
+import Settings from "./components/Settings";
+import { useInterval } from "./hooks/useInterval";
 import {
   clearActiveSession,
   limitHistoryEntries,
@@ -26,198 +26,229 @@ import {
   readDailyGoal,
   readWorkdays,
   writeLanguage,
-} from './utils/cookies'
-import t from './i18n'
-import { downloadHistory } from './utils/export'
-import { formatDateTime, formatDuration, getElapsedDuration } from './utils/time'
-import { formatLocalYMD } from './utils/date'
+} from "./utils/cookies";
+import t from "./i18n";
+import { downloadHistory } from "./utils/export";
+import {
+  formatDateTime,
+  formatDuration,
+  getElapsedDuration,
+} from "./utils/time";
+import { formatLocalYMD } from "./utils/date";
 
 function getSystemTheme(): ThemeMode {
-  if (typeof window === 'undefined') {
-    return 'dark'
+  if (typeof window === "undefined") {
+    return "dark";
   }
 
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }
 
 function getInitialState() {
-  const restoredSession = readActiveSession()
+  const restoredSession = readActiveSession();
 
   return {
     theme: readTheme() ?? getSystemTheme(),
-    language: readLanguage() ?? 'en',
-    taskName: restoredSession?.taskName ?? '',
+    language: readLanguage() ?? "en",
+    taskName: restoredSession?.taskName ?? "",
     activeSession: restoredSession,
     history: readHistory(),
     tags: readTags(),
     dailyGoalHours: readDailyGoal() ?? 8,
     workdays: readWorkdays(),
     now: Date.now(),
-  }
+  };
 }
 
 function App() {
-  const [initialState] = useState(getInitialState)
-  const [theme, setTheme] = useState<ThemeMode>(initialState.theme)
-  const [language, setLanguage] = useState(initialState.language)
-  const [taskName, setTaskName] = useState(initialState.taskName)
-  const [activeSession, setActiveSession] = useState<ActiveSession | null>(initialState.activeSession)
-  const [history, setHistory] = useState<HistoryEntry[]>(initialState.history)
-  const [tags, setTags] = useState<Tag[]>(initialState.tags ?? [])
-  const [selectedTagId, setSelectedTagId] = useState<string | null>(null)
-  const [now, setNow] = useState(initialState.now)
-  const [route, setRoute] = useState<string>(typeof window !== 'undefined' && window.location.pathname === '/settings' ? 'settings' : 'home')
-  const [dailyGoalHours, setDailyGoalHours] = useState<number>(initialState.dailyGoalHours)
-  const [workdays, setWorkdays] = useState(initialState.workdays)
+  const [initialState] = useState(getInitialState);
+  const [theme, setTheme] = useState<ThemeMode>(initialState.theme);
+  const [language, setLanguage] = useState(initialState.language);
+  const [taskName, setTaskName] = useState(initialState.taskName);
+  const [activeSession, setActiveSession] = useState<ActiveSession | null>(
+    initialState.activeSession,
+  );
+  const [history, setHistory] = useState<HistoryEntry[]>(initialState.history);
+  const [tags, setTags] = useState<Tag[]>(initialState.tags ?? []);
+  const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
+  const [now, setNow] = useState(initialState.now);
+  const [route, setRoute] = useState<string>(
+    typeof window !== "undefined" && window.location.pathname === "/settings"
+      ? "settings"
+      : "home",
+  );
+  const [dailyGoalHours, setDailyGoalHours] = useState<number>(
+    initialState.dailyGoalHours,
+  );
+  const [workdays, setWorkdays] = useState(initialState.workdays);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
-    document.documentElement.style.colorScheme = theme
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    document.documentElement.style.colorScheme = theme;
 
-    writeTheme(theme)
-  }, [theme])
+    writeTheme(theme);
+  }, [theme]);
 
   useEffect(() => {
     if (language) {
-      document.documentElement.lang = language
+      document.documentElement.lang = language;
       // persist selection in cookies
-      writeLanguage(language)
+      writeLanguage(language);
     }
-  }, [language])
+  }, [language]);
 
   useEffect(() => {
     if (activeSession) {
-      writeActiveSession(activeSession)
-      return
+      writeActiveSession(activeSession);
+      return;
     }
 
-    clearActiveSession()
-  }, [activeSession])
+    clearActiveSession();
+  }, [activeSession]);
 
   useEffect(() => {
-    writeTags(tags)
-  }, [tags])
+    writeTags(tags);
+  }, [tags]);
 
   useEffect(() => {
-    writeHistory(history)
-  }, [history])
+    writeHistory(history);
+  }, [history]);
 
   useInterval(
     () => {
-      setNow(Date.now())
+      setNow(Date.now());
     },
     activeSession ? 250 : null,
-  )
+  );
 
   // Navigation handlers: support /settings deep-link
   const openSettings = () => {
-    setRoute('settings')
+    setRoute("settings");
     try {
-      window.history.pushState({}, '', '/settings')
+      window.history.pushState({}, "", "/settings");
     } catch (e) {
       /* ignore */
     }
-  }
+  };
 
   const closeSettings = () => {
-    setRoute('home')
+    setRoute("home");
     try {
-      window.history.pushState({}, '', '/')
+      window.history.pushState({}, "", "/");
     } catch (e) {
       /* ignore */
     }
-  }
+  };
 
   // handle browser back/forward
   useEffect(() => {
-    const onPop = () => setRoute(window.location.pathname === '/settings' ? 'settings' : 'home')
-    window.addEventListener('popstate', onPop)
-    return () => window.removeEventListener('popstate', onPop)
-  }, [])
+    const onPop = () =>
+      setRoute(window.location.pathname === "/settings" ? "settings" : "home");
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
-  const elapsedMs = activeSession ? getElapsedDuration(activeSession.startTimestamp, now) : 0
-  const totalTrackedMs = history.reduce((total, entry) => total + entry.durationMs, 0)
+  const elapsedMs = activeSession
+    ? getElapsedDuration(activeSession.startTimestamp, now)
+    : 0;
+  const totalTrackedMs = history.reduce(
+    (total, entry) => total + entry.durationMs,
+    0,
+  );
   const totalsByTag = history.reduce((map: Record<string, number>, entry) => {
     if (entry.tagId) {
-      map[entry.tagId] = (map[entry.tagId] || 0) + entry.durationMs
+      map[entry.tagId] = (map[entry.tagId] || 0) + entry.durationMs;
     }
 
-    return map
-  }, {})
-  const totalsByTask = history.reduce((map: Record<string, number>, entry) => {
-    map[entry.taskName] = (map[entry.taskName] || 0) + entry.durationMs
-    return map
-  }, {} as Record<string, number>)
+    return map;
+  }, {});
+  const totalsByTask = history.reduce(
+    (map: Record<string, number>, entry) => {
+      map[entry.taskName] = (map[entry.taskName] || 0) + entry.durationMs;
+      return map;
+    },
+    {} as Record<string, number>,
+  );
 
   // include currently running session time in the totals
   if (activeSession) {
-    totalsByTask[activeSession.taskName] = (totalsByTask[activeSession.taskName] || 0) + elapsedMs
+    totalsByTask[activeSession.taskName] =
+      (totalsByTask[activeSession.taskName] || 0) + elapsedMs;
   }
-  const todayKey = formatLocalYMD(now)
-  const completedToday = history.filter((entry) => formatLocalYMD(entry.endTimestamp) === todayKey).length
-  const latestEntry = history[0] ?? null
+  const todayKey = formatLocalYMD(now);
+  const completedToday = history.filter(
+    (entry) => formatLocalYMD(entry.endTimestamp) === todayKey,
+  ).length;
+  const latestEntry = history[0] ?? null;
 
   const handleStart = () => {
-    const normalizedTaskName = taskName.trim()
+    const normalizedTaskName = taskName.trim();
 
     if (!normalizedTaskName) {
-      return
+      return;
     }
 
-    const startTimestamp = Date.now()
-    setTaskName(normalizedTaskName)
-    setNow(startTimestamp)
+    const startTimestamp = Date.now();
+    setTaskName(normalizedTaskName);
+    setNow(startTimestamp);
     setActiveSession({
       taskName: normalizedTaskName,
       startTimestamp,
       tagId: selectedTagId ?? undefined,
-    })
-  }
+    });
+  };
 
   const handleStop = () => {
     if (!activeSession) {
-      return
+      return;
     }
 
-    const endTimestamp = Date.now()
+    const endTimestamp = Date.now();
     const nextEntry: HistoryEntry = {
       id: `${activeSession.startTimestamp}-${endTimestamp}`,
       taskName: activeSession.taskName,
       startTimestamp: activeSession.startTimestamp,
       endTimestamp,
-      durationMs: getElapsedDuration(activeSession.startTimestamp, endTimestamp),
+      durationMs: getElapsedDuration(
+        activeSession.startTimestamp,
+        endTimestamp,
+      ),
       tagId: activeSession.tagId,
-    }
+    };
 
-    setHistory((currentHistory) => limitHistoryEntries([nextEntry, ...currentHistory]))
-    setActiveSession(null)
-    setTaskName('')
-    setNow(endTimestamp)
-  }
+    setHistory((currentHistory) =>
+      limitHistoryEntries([nextEntry, ...currentHistory]),
+    );
+    setActiveSession(null);
+    setTaskName("");
+    setNow(endTimestamp);
+  };
 
   const handleExport = () => {
     if (history.length === 0) {
-      return
+      return;
     }
 
-    downloadHistory(history, tags, language)
-  }
+    downloadHistory(history, tags, language);
+  };
 
   const handleClearHistory = () => {
     if (history.length === 0) {
-      return
+      return;
     }
 
-    const confirmed = window.confirm(t('confirmDeleteHistory', language))
+    const confirmed = window.confirm(t("confirmDeleteHistory", language));
 
     if (!confirmed) {
-      return
+      return;
     }
 
-    setHistory([])
-  }
+    setHistory([]);
+  };
 
-  if (route === 'settings') {
+  if (route === "settings") {
     return (
       <div className="relative isolate overflow-hidden">
         <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
@@ -236,7 +267,7 @@ function App() {
           />
         </main>
       </div>
-    )
+    );
   }
 
   return (
@@ -247,38 +278,44 @@ function App() {
 
       <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
         <header className="surface mb-6 flex flex-col gap-6 px-6 py-6 sm:px-8 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-2xl">
-            <p className="eyebrow">{t('eyebrow', language)}</p>
+          <div className="max-w-2xl">
+            <p className="eyebrow">{t("eyebrow", language)}</p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <span className="display-face text-4xl font-semibold tracking-[-0.08em] text-slate-950 dark:text-white sm:text-5xl">
                 Hookie
               </span>
               <span className="rounded-full border border-slate-300/70 bg-white/65 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500 dark:border-white/10 dark:bg-white/6 dark:text-slate-300">
-                {t('cookieState', language)}
+                {t("cookieState", language)}
               </span>
             </div>
             <p className="mt-4 max-w-xl text-sm leading-7 text-slate-600 dark:text-slate-300">
-              {t('introParagraph', language)}
+              {t("introParagraph", language)}
             </p>
           </div>
 
-            <div className="flex flex-col items-start gap-4 lg:items-end">
+          <div className="flex flex-col items-start gap-4 lg:items-end">
             <div className="flex gap-3">
-              <button type="button" onClick={openSettings} className="action-button">
-                {t('settings', language)}
+              <button
+                type="button"
+                onClick={openSettings}
+                className="action-button"
+              >
+                {t("settings", language)}
               </button>
             </div>
             <div className="surface-muted w-full min-w-0 px-4 py-4 text-left lg:max-w-sm">
               <p className="mono-face text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
-                {t('lastCompleted', language)}
+                {t("lastCompleted", language)}
               </p>
               <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
-                {latestEntry ? latestEntry.taskName : t('noCompleted', language)}
+                {latestEntry
+                  ? latestEntry.taskName
+                  : t("noCompleted", language)}
               </p>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
                 {latestEntry
-                  ? `${formatDuration(latestEntry.durationMs)} ${t('finishedAt', language)} ${formatDateTime(latestEntry.endTimestamp)}`
-                  : t('startFirst', language)}
+                  ? `${formatDuration(latestEntry.durationMs)} ${t("finishedAt", language)} ${formatDateTime(latestEntry.endTimestamp)}`
+                  : t("startFirst", language)}
               </p>
             </div>
           </div>
@@ -301,42 +338,57 @@ function App() {
 
           <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-1 min-w-0">
             <article className="stat-tile">
-              <p className="eyebrow">{t('completedSessions', language)}</p>
+              <p className="eyebrow">{t("completedSessions", language)}</p>
               <p className="display-face mt-5 text-4xl font-semibold text-slate-950 dark:text-white">
                 {history.length}
               </p>
               <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-                {t('completedSessionsDesc', language)}
+                {t("completedSessionsDesc", language)}
               </p>
             </article>
 
             <article className="stat-tile">
-              <p className="eyebrow">{t('trackedTime', language)}</p>
+              <p className="eyebrow">{t("trackedTime", language)}</p>
               <p className="display-face mt-5 text-4xl font-semibold text-slate-950 dark:text-white">
                 {formatDuration(totalTrackedMs)}
               </p>
               <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-                {t('trackedTimeDesc', language)}
+                {t("trackedTimeDesc", language)}
               </p>
             </article>
 
             <article className="stat-tile">
-              <p className="eyebrow">{t('closedToday', language)}</p>
+              <p className="eyebrow">{t("closedToday", language)}</p>
               <p className="display-face mt-5 text-4xl font-semibold text-slate-950 dark:text-white">
                 {completedToday}
               </p>
               <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-                {t('closedTodayDesc', language)}
+                {t("closedTodayDesc", language)}
               </p>
             </article>
           </div>
           <div className="xl:col-span-2 min-w-0">
-            <TagSummary tags={tags} totalsByTag={totalsByTag} language={language} />
+            <TagSummary
+              tags={tags}
+              totalsByTag={totalsByTag}
+              language={language}
+            />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:col-span-2 2xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] min-w-0">
-            <PieByTask totalsByTask={totalsByTask} totalMs={totalTrackedMs + (activeSession ? elapsedMs : 0)} language={language} />
-            <TimeByDay history={history} now={now} language={language} activeSession={activeSession} elapsedMs={elapsedMs} workdays={workdays} />
+            <PieByTask
+              totalsByTask={totalsByTask}
+              totalMs={totalTrackedMs + (activeSession ? elapsedMs : 0)}
+              language={language}
+            />
+            <TimeByDay
+              history={history}
+              now={now}
+              language={language}
+              activeSession={activeSession}
+              elapsedMs={elapsedMs}
+              workdays={workdays}
+            />
           </div>
         </section>
 
@@ -350,7 +402,7 @@ function App() {
         />
       </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
