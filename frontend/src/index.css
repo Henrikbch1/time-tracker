@@ -12,6 +12,25 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+@media (max-width: 380px) {
+  /* Extra-tight adjustments for very small phones */
+  .stat-tile {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  .display-face {
+    font-size: 1.1rem;
+  }
+
+  /* ensure small grid items can shrink */
+  .grid > .min-w-0 {
+    min-width: 0 !important;
+  }
+}
+
 @media (max-width: 480px) {
   /* Reduce padding and compact several components for small phones */
   .stat-tile {

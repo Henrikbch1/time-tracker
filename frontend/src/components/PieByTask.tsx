@@ -114,16 +114,16 @@ export default function PieByTask({
           </text>
         </svg>
 
-        <div className="grid w-full gap-3 lg:max-w-[24rem]">
+        <div className="grid w-full gap-3 lg:max-w-[24rem] max-w-full min-w-0">
           {slices.slice(0, 8).map((s) => (
             <div
               key={s.taskName}
-              className="surface-muted flex items-center gap-3 px-4 py-3"
+              className="surface-muted flex items-center gap-3 px-3 py-2 sm:px-4 sm:py-3"
             >
               <span
                 style={{
-                  width: 12,
-                  height: 12,
+                  width: 10,
+                  height: 10,
                   background: s.color,
                   borderRadius: 3,
                   display: "inline-block",
