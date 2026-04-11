@@ -1,6 +1,6 @@
 # Time Tracker
 
-[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-0.4.3-lightgrey.svg)](frontend/package.json)
+[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-0.4.4-lightgrey.svg)](frontend/package.json)
 
 Eine leichte, im Browser laufende Anwendung zur Erfassung und Auswertung von Arbeitszeit. Die Benutzeroberfläche ist als Single-Page-App mit React + TypeScript erstellt und liegt im Ordner `frontend/`.
 
