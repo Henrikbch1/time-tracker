@@ -1,6 +1,6 @@
-import { formatDuration } from "../utils/time";
+import { formatDuration } from "../lib/time";
 import t from "../i18n";
-import type { Language } from "../utils/cookies";
+import type { Language } from "../lib/cookies";
 
 type Props = {
   totalsByTask: Record<string, number>;
