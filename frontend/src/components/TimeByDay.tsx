@@ -1,6 +1,6 @@
-import { formatDuration } from "../utils/time";
-import { formatLocalYMD } from "../utils/date";
-import type { HistoryEntry, ActiveSession, Language } from "../utils/cookies";
+import { formatDuration } from "../lib/time";
+import { formatLocalYMD } from "../lib/date";
+import type { HistoryEntry, ActiveSession, Language } from "../lib/cookies";
 import t from "../i18n";
 
 function progressGradient(percent: number) {
