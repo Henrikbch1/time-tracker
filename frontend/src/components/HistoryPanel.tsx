@@ -1,4 +1,4 @@
-import { type HistoryEntry, type Tag } from "../lib/cookies";
+import { type HistoryEntry, type Tag, type Language } from "../lib/cookies";
 import {
   formatDateTime,
   formatDuration,
@@ -6,7 +6,6 @@ import {
   formatTime,
 } from "../lib/time";
 import t from "../i18n";
-import type { Language } from "../lib/cookies";
 
 interface HistoryPanelProps {
   history: HistoryEntry[];
