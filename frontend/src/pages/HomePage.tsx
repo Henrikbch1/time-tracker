@@ -21,7 +21,6 @@ export default function HomePage() {
     setSelectedTagId,
     selectedTagId,
     now,
-    dailyGoalHours: _dailyGoalHours,
     workdays,
     elapsedMs,
     totalTrackedMs,

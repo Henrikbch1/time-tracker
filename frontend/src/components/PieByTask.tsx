@@ -37,7 +37,6 @@ function describeArc(
 function stringToHslColor(str: string, s = 65, l = 55) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
-    // eslint-disable-next-line no-bitwise
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
     // keep in 32bit
     hash |= 0;

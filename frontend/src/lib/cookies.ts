@@ -147,6 +147,16 @@ export function readHistory() {
   return parsedHistory.filter(isHistoryEntry)
 }
 
+function isTag(value: unknown): value is Tag {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const candidate = value as Partial<Tag>
+
+  return typeof candidate.id === 'string' && typeof candidate.name === 'string'
+}
+
 export function readTags() {
   const parsed = safeParseJson<unknown>(Cookies.get(TAGS_COOKIE))
 
@@ -155,7 +165,7 @@ export function readTags() {
   }
 
   // basic validation
-  return parsed.filter((t) => t && typeof t === 'object' && typeof (t as any).id === 'string' && typeof (t as any).name === 'string') as Tag[]
+  return parsed.filter(isTag)
 }
 
 export function writeTags(tags: Tag[]) {
