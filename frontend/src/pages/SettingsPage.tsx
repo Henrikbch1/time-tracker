@@ -229,7 +229,7 @@ export default function SettingsPage() {
               <div className="flex gap-2">
                 <button
                   type="button"
-                  className={"primary-button" + (saved ? " opacity-90" : "")}
+                  className={`primary-button${saved ? " opacity-90" : ""}`}
                   onClick={() => {
                     setDailyGoalHours(goalHours);
                     setWorkdays(localWorkdays);
