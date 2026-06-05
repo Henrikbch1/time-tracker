@@ -16,6 +16,34 @@ interface HistoryPanelProps {
   language: Language;
 }
 
+interface TagBadgeProps {
+  tagId: string;
+  tags: Tag[];
+  language: Language;
+}
+
+function TagBadge({ tagId, tags, language }: TagBadgeProps) {
+  const tag = tags.find((tg) => tg.id === tagId);
+  return (
+    <span
+      className="ml-2 inline-flex items-center gap-2 rounded px-2 py-1 text-xs font-medium"
+      style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+    >
+      <span
+        style={{
+          width: 10,
+          height: 10,
+          background: tag?.color ?? "transparent",
+        }}
+        className="inline-block rounded-full"
+      />
+      <span className="truncate max-w-[8rem] block">
+        {tag?.name ?? t("deletedLabel", language)}
+      </span>
+    </span>
+  );
+}
+
 export function HistoryPanel({
   history,
   totalTrackedMs,
@@ -76,29 +104,7 @@ export function HistoryPanel({
                 <p className="display-face text-xl font-semibold text-slate-950 dark:text-white flex items-center gap-3">
                   <span className="min-w-0 truncate">{entry.taskName}</span>
                   {entry.tagId ? (
-                    <span
-                      className="ml-2 inline-flex items-center gap-2 rounded px-2 py-1 text-xs font-medium"
-                      style={{ border: "1px solid rgba(0,0,0,0.06)" }}
-                    >
-                      {(() => {
-                        const tag = tags.find((tg) => tg.id === entry.tagId);
-                        return (
-                          <>
-                            <span
-                              style={{
-                                width: 10,
-                                height: 10,
-                                background: tag?.color ?? "transparent",
-                              }}
-                              className="inline-block rounded-full"
-                            />
-                            <span className="truncate max-w-[8rem] block">
-                              {tag?.name ?? t("deletedLabel", language)}
-                            </span>
-                          </>
-                        );
-                      })()}
-                    </span>
+                    <TagBadge tagId={entry.tagId} tags={tags} language={language} />
                   ) : null}
                 </p>
                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
