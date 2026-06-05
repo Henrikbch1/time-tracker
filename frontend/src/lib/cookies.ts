@@ -21,8 +21,10 @@ export type ThemeMode = 'light' | 'dark'
 
 const ACTIVE_SESSION_COOKIE = 'hookie.active-session'
 const HISTORY_COOKIE = 'hookie.history'
+// History is stored in localStorage (no size limit) instead of a cookie (~4 KB limit),
+// so there is no upper bound on how many tasks can be saved.
+const HISTORY_STORAGE_KEY = 'hookie.history'
 const THEME_COOKIE = 'hookie.theme'
-const HISTORY_CHAR_LIMIT = 3_200
 const COOKIE_PATH = import.meta.env.BASE_URL || '/'
 const COOKIE_WRITE_OPTIONS = {
   expires: 365,
@@ -95,25 +97,6 @@ function isHistoryEntry(value: unknown): value is HistoryEntry {
   )
 }
 
-function getSerializedSize(value: string) {
-  return encodeURIComponent(value).length
-}
-
-export function limitHistoryEntries(entries: HistoryEntry[]) {
-  let trimmedEntries = [...entries]
-
-  while (trimmedEntries.length > 0) {
-    const serializedEntries = JSON.stringify(trimmedEntries)
-
-    if (getSerializedSize(serializedEntries) <= HISTORY_CHAR_LIMIT) {
-      return trimmedEntries
-    }
-
-    trimmedEntries = trimmedEntries.slice(0, -1)
-  }
-
-  return []
-}
 
 export function readActiveSession() {
   const parsedSession = safeParseJson<unknown>(Cookies.get(ACTIVE_SESSION_COOKIE))
@@ -134,7 +117,28 @@ export function clearActiveSession() {
 }
 
 export function readHistory() {
-  const parsedHistory = safeParseJson<unknown>(Cookies.get(HISTORY_COOKIE))
+  // Prefer localStorage (no size limit). Fall back to migrating the legacy cookie.
+  let raw: string | undefined
+  try {
+    raw = window.localStorage.getItem(HISTORY_STORAGE_KEY) ?? undefined
+  } catch {
+    raw = undefined
+  }
+
+  if (raw === undefined) {
+    const legacy = Cookies.get(HISTORY_COOKIE)
+    if (legacy) {
+      raw = legacy
+      const migrated = safeParseJson<unknown>(legacy)
+      if (Array.isArray(migrated)) {
+        // Move the data over to localStorage and drop the old cookie.
+        writeHistory(migrated.filter(isHistoryEntry))
+        Cookies.remove(HISTORY_COOKIE, COOKIE_REMOVE_OPTIONS)
+      }
+    }
+  }
+
+  const parsedHistory = safeParseJson<unknown>(raw)
 
   if (!Array.isArray(parsedHistory)) {
     return []
@@ -164,14 +168,17 @@ export function writeTags(tags: Tag[]) {
 }
 
 export function writeHistory(history: HistoryEntry[]) {
-  const trimmedHistory = limitHistoryEntries(history)
+  // Store the full history with no size limit so any number of tasks can be saved.
+  try {
+    if (!history || history.length === 0) {
+      window.localStorage.removeItem(HISTORY_STORAGE_KEY)
+      return
+    }
 
-  if (trimmedHistory.length === 0) {
-    Cookies.remove(HISTORY_COOKIE, COOKIE_REMOVE_OPTIONS)
-    return
+    window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history))
+  } catch {
+    // Ignore storage errors (e.g. private mode); data simply won't persist.
   }
-
-  Cookies.set(HISTORY_COOKIE, JSON.stringify(trimmedHistory), COOKIE_WRITE_OPTIONS)
 }
 
 export function readTheme() {

@@ -7,7 +7,6 @@ import {
 } from "react";
 import {
   clearActiveSession,
-  limitHistoryEntries,
   readActiveSession,
   readHistory,
   readTags,
@@ -169,7 +168,7 @@ export function TrackerProvider({ children }: { children: ReactNode }) {
       ),
       tagId: activeSession.tagId,
     };
-    setHistory((h) => limitHistoryEntries([nextEntry, ...h]));
+     setHistory((h) => [nextEntry, ...h]);
     setActiveSession(null);
     setTaskName("");
     setNow(endTimestamp);
