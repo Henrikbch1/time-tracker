@@ -31,17 +31,16 @@ export default function TimeByDay({
   elapsedMs = 0,
   workdays,
 }: Props) {
-  const nowTs = now;
   const dayMs: Record<string, number> = {};
 
   for (const entry of history) {
-    if (entry.endTimestamp > nowTs) continue;
+    if (entry.endTimestamp > now) continue;
 
     const key = formatLocalYMD(entry.endTimestamp);
     dayMs[key] = (dayMs[key] || 0) + entry.durationMs;
   }
 
-  const today = new Date(nowTs);
+  const today = new Date(now);
   const dayOfWeek = (today.getDay() + 6) % 7;
   const monday = new Date(today);
   monday.setDate(today.getDate() - dayOfWeek);
@@ -64,10 +63,9 @@ export default function TimeByDay({
 
   if (activeSession) {
     const activeDateKey = formatLocalYMD(activeSession.startTimestamp);
-    const todayIndex = (new Date(nowTs).getDay() + 6) % 7;
-    const todayKey = formatLocalYMD(daysArr[todayIndex].ts);
+    const todayKey = formatLocalYMD(daysArr[dayOfWeek].ts);
     if (activeDateKey === todayKey) {
-      daysArr[todayIndex].ms += elapsedMs || 0;
+      daysArr[dayOfWeek].ms += elapsedMs || 0;
     }
   }
 
