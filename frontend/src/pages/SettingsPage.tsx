@@ -40,6 +40,7 @@ export default function SettingsPage() {
               {t("settingsHeader", language)}
             </h2>
             <button
+              type="button"
               onClick={() => navigate(-1)}
               className="action-button"
               aria-label={t("closeLabel", language)}
@@ -138,6 +139,7 @@ export default function SettingsPage() {
                       <span className="text-sm">{tag.name}</span>
                     </div>
                     <button
+                      type="button"
                       onClick={() =>
                         setTags(tags.filter((tg) => tg.id !== tag.id))
                       }
