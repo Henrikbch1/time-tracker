@@ -13,7 +13,6 @@ interface HistoryPanelProps {
   totalTrackedMs: number;
   tags?: Tag[];
   onExport: () => void;
-  onClear: () => void;
   language: Language;
 }
 
@@ -22,7 +21,6 @@ export function HistoryPanel({
   totalTrackedMs,
   tags = [],
   onExport,
-  onClear,
   language,
 }: HistoryPanelProps) {
   return (
@@ -52,14 +50,6 @@ export function HistoryPanel({
             className="action-button disabled:cursor-not-allowed disabled:opacity-55"
           >
             {t("exportHistory", language)}
-          </button>
-          <button
-            type="button"
-            onClick={onClear}
-            disabled={history.length === 0}
-            className="action-button disabled:cursor-not-allowed disabled:opacity-55"
-          >
-            {t("deleteAll", language)}
           </button>
         </div>
       </div>
