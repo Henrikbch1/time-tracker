@@ -28,7 +28,7 @@ export default function TagSummary({ tags, totalsByTag, language }: Props) {
       <p className="eyebrow">{t("tagsSummary", language)}</p>
       <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {tagIds.map((id) => {
-          const tag = tags.find((t) => t.id === id);
+          const tag = tags.find((tg) => tg.id === id);
           return (
             <div
               key={id}

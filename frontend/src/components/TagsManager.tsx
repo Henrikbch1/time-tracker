@@ -26,7 +26,7 @@ export default function TagsManager({
   };
 
   const handleDelete = (id: string) => {
-    onChange(tags.filter((t) => t.id !== id));
+    onChange(tags.filter((tag) => tag.id !== id));
   };
 
   return (

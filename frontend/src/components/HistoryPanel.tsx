@@ -81,7 +81,7 @@ export function HistoryPanel({
                       style={{ border: "1px solid rgba(0,0,0,0.06)" }}
                     >
                       {(() => {
-                        const tag = tags.find((t) => t.id === entry.tagId);
+                        const tag = tags.find((tg) => tg.id === entry.tagId);
                         return (
                           <>
                             <span

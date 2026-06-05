@@ -4,7 +4,7 @@ import t from '../i18n'
 
 function buildHistoryText(history: HistoryEntry[], tags: Tag[], language: Language) {
   const lines = history.flatMap((entry, index) => {
-    const tagName = entry.tagId ? tags.find((t) => t.id === entry.tagId)?.name ?? t('deletedLabel', language) : null
+    const tagName = entry.tagId ? tags.find((tag) => tag.id === entry.tagId)?.name ?? t('deletedLabel', language) : null
 
     const block = [
       `${index + 1}. ${entry.taskName}${tagName ? ` — ${tagName}` : ''}`,
