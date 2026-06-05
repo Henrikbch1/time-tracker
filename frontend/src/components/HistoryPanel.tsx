@@ -8,17 +8,17 @@ import {
 import t from "../i18n";
 
 interface HistoryPanelProps {
-  history: HistoryEntry[];
-  totalTrackedMs: number;
-  tags?: Tag[];
-  onExport: () => void;
-  language: Language;
+  readonly history: HistoryEntry[];
+  readonly totalTrackedMs: number;
+  readonly tags?: Tag[];
+  readonly onExport: () => void;
+  readonly language: Language;
 }
 
 interface TagBadgeProps {
-  tagId: string;
-  tags: Tag[];
-  language: Language;
+  readonly tagId: string;
+  readonly tags: Tag[];
+  readonly language: Language;
 }
 
 function TagBadge({ tagId, tags, language }: Readonly<TagBadgeProps>) {
@@ -136,9 +136,9 @@ export function HistoryPanel({
 }
 
 interface DetailProps {
-  label: string;
-  value: string;
-  helper: string;
+  readonly label: string;
+  readonly value: string;
+  readonly helper: string;
 }
 
 function Detail({ label, value, helper }: Readonly<DetailProps>) {
