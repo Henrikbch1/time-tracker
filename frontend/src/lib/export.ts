@@ -20,7 +20,7 @@ function buildHistoryText(history: HistoryEntry[], tags: Tag[], language: Langua
 }
 
 export function downloadHistory(history: HistoryEntry[], tags: Tag[] = [], language: Language = 'en') {
-  const historyText = buildHistoryText(history.map((e) => ({ ...e } as HistoryEntry)), tags, language)
+  const historyText = buildHistoryText(history, tags, language)
   const blob = new Blob([historyText], { type: 'text/plain;charset=utf-8' })
   const downloadUrl = window.URL.createObjectURL(blob)
   const link = document.createElement('a')
