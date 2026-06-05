@@ -132,30 +132,37 @@ export function TrackerProvider({children}: Readonly<{ children: ReactNode }>) {
         0,
     );
 
-    const totalsByTag = history.reduce((map: Record<string, number>, entry) => {
-        if (entry.tagId)
-            map[entry.tagId] = (map[entry.tagId] || 0) + entry.durationMs;
-        return map;
-    }, {});
-
-    const totalsByTask = history.reduce(
-        (map: Record<string, number>, entry) => {
-            map[entry.taskName] = (map[entry.taskName] || 0) + entry.durationMs;
-            return map;
-        },
-        {} as Record<string, number>,
+    const totalsByTag = useMemo(
+        () =>
+            history.reduce((map: Record<string, number>, entry) => {
+                if (entry.tagId)
+                    map[entry.tagId] = (map[entry.tagId] || 0) + entry.durationMs;
+                return map;
+            }, {}),
+        [history],
     );
 
-    if (activeSession) {
-        totalsByTask[activeSession.taskName] =
-            (totalsByTask[activeSession.taskName] || 0) + elapsedMs;
-    }
+    const totalsByTask = useMemo(() => {
+        const map = history.reduce(
+            (acc: Record<string, number>, entry) => {
+                acc[entry.taskName] = (acc[entry.taskName] || 0) + entry.durationMs;
+                return acc;
+            },
+            {},
+        );
+        if (activeSession) {
+            map[activeSession.taskName] =
+                (map[activeSession.taskName] || 0) + elapsedMs;
+        }
+        return map;
+    }, [history, activeSession, elapsedMs]);
 
     const todayKey = formatLocalYMD(now);
-    const completedToday = history.filter(
-        (e) => formatLocalYMD(e.endTimestamp) === todayKey,
-    ).length;
-    const latestEntry = history[0] ?? null;
+    const completedToday = useMemo(
+        () => history.filter((e) => formatLocalYMD(e.endTimestamp) === todayKey).length,
+        [history, todayKey],
+    );
+    const latestEntry = useMemo(() => history[0] ?? null, [history]);
 
     const handleStart = useCallback(() => {
         const normalized = taskName.trim();
