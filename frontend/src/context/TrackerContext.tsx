@@ -90,7 +90,9 @@ function getInitialState() {
 
 export function TrackerProvider({children}: Readonly<{ children: ReactNode }>) {
     const {language} = useLanguage();
-    const [initial] = useState(getInitialState);
+    // include the setter (prefixed with `_` to avoid unused-var lint) so the
+    // useState call is destructured into the value+setter pair
+    const [initial, _setInitial] = useState(getInitialState);
     const [taskName, setTaskName] = useState(initial.taskName);
     const [activeSession, setActiveSession] = useState<ActiveSession | null>(
         initial.activeSession,
