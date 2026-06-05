@@ -1,0 +1,9 @@
+# IDE / Editor
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+
+# Backup files
+*.bak
+

@@ -102,9 +102,12 @@ const strings = {
     dayShortFri: "Fri",
     dayShortSat: "Sat",
     dayShortSun: "Sun",
-    export_fileName: "Hookie Time History",
-    closeLabel: "Close",
-  },
+     export_fileName: "Hookie Time History",
+     closeLabel: "Close",
+     dangerZone: "Danger Zone",
+     hardResetDescription: "Permanently delete all tracked time entries. This action cannot be undone.",
+     hardReset: "Hard Reset",
+   },
   de: {
     eyebrow: "Browser-basierte Zeiterfassung",
     cookieState: "Cookie-Zustand",
@@ -210,6 +213,9 @@ const strings = {
     dayShortSun: "So",
     export_fileName: "Hookie Verlauf",
     closeLabel: "Schließen",
+    dangerZone: "Gefahrenzone",
+    hardResetDescription: "Alle erfassten Zeiteinträge permanent löschen. Diese Aktion kann nicht rückgängig gemacht werden.",
+    hardReset: "Vollständiger Reset",
   },
 } as const;
 

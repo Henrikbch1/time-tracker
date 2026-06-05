@@ -32,7 +32,6 @@ export default function HomePage() {
     handleStart,
     handleStop,
     handleExport,
-    handleClearHistory,
   } = useTracker();
 
   return (
@@ -163,7 +162,6 @@ export default function HomePage() {
           totalTrackedMs={totalTrackedMs}
           tags={tags}
           onExport={handleExport}
-          onClear={handleClearHistory}
           language={language}
         />
       </main>
