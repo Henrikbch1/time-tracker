@@ -24,11 +24,8 @@ export default function SettingsPage() {
 
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("#7c3aed");
-  const [goalHours, setGoalHours] = useState<number>(dailyGoalHours ?? 8);
-  const [localWorkdays, setLocalWorkdays] = useState(
-    () =>
-      workdays ?? { mon: 8, tue: 8, wed: 8, thu: 8, fri: 8, sat: 0, sun: 0 },
-  );
+  const [goalHours, setGoalHours] = useState<number>(dailyGoalHours);
+  const [localWorkdays, setLocalWorkdays] = useState(() => workdays);
   const [saved, setSaved] = useState(false);
 
   return (
