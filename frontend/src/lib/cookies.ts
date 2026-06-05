@@ -159,7 +159,7 @@ export function readTags() {
 }
 
 export function writeTags(tags: Tag[]) {
-  if (!tags || tags.length === 0) {
+  if (tags.length === 0) {
     Cookies.remove(TAGS_COOKIE, COOKIE_REMOVE_OPTIONS)
     return
   }
@@ -169,7 +169,7 @@ export function writeTags(tags: Tag[]) {
 
 export function writeHistory(history: HistoryEntry[]) {
   try {
-    if (!history || history.length === 0) {
+    if (history.length === 0) {
       window.localStorage.removeItem(HISTORY_STORAGE_KEY)
       return
     }
