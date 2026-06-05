@@ -21,7 +21,7 @@ interface TagBadgeProps {
   readonly language: Language;
 }
 
-function TagBadge({ tagId, tags, language }: Readonly<TagBadgeProps>) {
+function TagBadge({ tagId, tags, language }: TagBadgeProps) {
   const tag = tags.find((tg) => tg.id === tagId);
   return (
     <span
@@ -49,7 +49,7 @@ export function HistoryPanel({
   tags = [],
   onExport,
   language,
-}: Readonly<HistoryPanelProps>) {
+}: HistoryPanelProps) {
   return (
     <section className="surface mt-6 px-6 py-6 sm:px-8 sm:py-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -141,7 +141,7 @@ interface DetailProps {
   readonly helper: string;
 }
 
-function Detail({ label, value, helper }: Readonly<DetailProps>) {
+function Detail({ label, value, helper }: DetailProps) {
   return (
     <div>
       <p className="eyebrow">{label}</p>
