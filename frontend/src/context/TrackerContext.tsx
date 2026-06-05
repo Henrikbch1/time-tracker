@@ -65,13 +65,6 @@ function getInitialState() {
     const restoredSession = readActiveSession();
     const history = readHistory();
 
-    // Guard against a stale active session being restored by the browser.
-    // Scenario: the task was stopped (and already saved to history), but after a
-    // shutdown the browser's session/tab restore brought back an older cookie
-    // state, resurrecting the already-completed session. If the restored session
-    // matches an entry that is already in the history (same start timestamp), it
-    // was already stopped and must be discarded so the timer does not keep
-    // running and corrupt the statistics.
     const alreadyCompleted =
         restoredSession != null &&
         history.some(

@@ -41,9 +41,8 @@ export default function TimeByDay({
     dayMs[key] = (dayMs[key] || 0) + entry.durationMs;
   }
 
-  // compute start of week (Monday)
   const today = new Date(nowTs);
-  const dayOfWeek = (today.getDay() + 6) % 7; // 0 = Monday
+  const dayOfWeek = (today.getDay() + 6) % 7;
   const monday = new Date(today);
   monday.setDate(today.getDate() - dayOfWeek);
 
@@ -63,21 +62,17 @@ export default function TimeByDay({
     return { key, ts: d.getTime(), ms: dayMs[key] || 0, dayKey, workHours };
   });
 
-  // add active session elapsed time to today's bucket if it exists
   if (activeSession) {
     const activeDateKey = formatLocalYMD(activeSession.startTimestamp);
     const todayIndex = (new Date(nowTs).getDay() + 6) % 7;
     const todayKey = formatLocalYMD(daysArr[todayIndex].ts);
-    // if active session started today only add to today's bucket
     if (activeDateKey === todayKey) {
       daysArr[todayIndex].ms += elapsedMs || 0;
     }
   }
 
-  // filter to only workdays with > 0 hours
   const displayedDays = daysArr.filter((d) => (d.workHours ?? 0) > 0);
   const maxMs = Math.max(...displayedDays.map((d) => d.ms), 1);
-  // compute max target ms across week to have consistent scaling
   const maxTargetMs = Math.max(
     ...["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map((k) => {
       const dayKey = k as "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
@@ -132,7 +127,6 @@ export default function TimeByDay({
                   width: "100%",
                 }}
               >
-                {/* target background bar */}
                 <div
                   style={{
                     width: "100%",
@@ -144,7 +138,6 @@ export default function TimeByDay({
                   }}
                   aria-hidden
                 />
-                {/* achieved fill */}
                 <div
                   style={{
                     width: "100%",
@@ -154,7 +147,6 @@ export default function TimeByDay({
                     position: "relative",
                   }}
                 />
-                {/* small target line indicator */}
                 {targetMs > 0 ? (
                   <div
                     style={{
