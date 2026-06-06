@@ -13,14 +13,12 @@ const strings = {
     closedToday: "Closed today",
     introParagraph:
       "Track one task at a time, recover instantly after refresh, and keep an exportable local history without leaving the browser.",
-    // Stat descriptions
     completedSessionsDesc:
       "Hookie keeps the newest entries in cookies so refresh recovery stays fast.",
     trackedTimeDesc:
       "Total across completed tasks in the current browser profile.",
     closedTodayDesc:
       "A quick signal for momentum without introducing extra dashboards.",
-    // TrackerCard
     activeTracking: "Active tracking",
     keepOneTask: "Keep one task in motion.",
     storesRunningTask:
@@ -45,7 +43,6 @@ const strings = {
     workflowTitle: "Workflow",
     workflowDesc:
       "One running task at a time keeps the cookie model simple and the UI unambiguous.",
-    // HistoryPanel
     taskHistory: "Task history",
     exportableCompact: "Exportable, compact, and local-first.",
     completedSessionsParagraph:
@@ -62,7 +59,6 @@ const strings = {
     detailDuration: "Duration",
     savedToCookieHistory: "Saved to cookie history",
     confirmDeleteHistory: "Delete the full Hookie history from this browser?",
-    // Theme
     lightMode: "Light mode",
     darkMode: "Dark mode",
     settings: "Settings",
@@ -83,7 +79,6 @@ const strings = {
     hours: "hours",
     save: "Save",
     saved: "Saved",
-    // Additional UI strings
     languageEnglish: "English",
     languageGerman: "Deutsch",
     languageShortEN: "EN",
@@ -120,14 +115,12 @@ const strings = {
     closedToday: "Heute abgeschlossen",
     introParagraph:
       "Verfolge eine Aufgabe nach der anderen, stelle nach einem Refresh sofort wieder her und behalte einen exportierbaren lokalen Verlauf.",
-    // Stat descriptions
     completedSessionsDesc:
       "Hookie behält die neuesten Einträge in Cookies, sodass die Wiederherstellung nach einem Refresh schnell bleibt.",
     trackedTimeDesc:
       "Gesamt über abgeschlossene Aufgaben im aktuellen Browser-Profil.",
     closedTodayDesc:
       "Ein schneller Indikator für Momentum, ohne zusätzliche Dashboards.",
-    // TrackerCard
     activeTracking: "Aktive Erfassung",
     keepOneTask: "Halte eine Aufgabe in Bewegung.",
     storesRunningTask:
@@ -153,7 +146,6 @@ const strings = {
     workflowTitle: "Workflow",
     workflowDesc:
       "Eine laufende Aufgabe zur Zeit hält das Cookie-Modell einfach und die UI eindeutig.",
-    // HistoryPanel
     taskHistory: "Aufgabenverlauf",
     exportableCompact: "Exportierbar, kompakt und lokal-zuerst.",
     completedSessionsParagraph:
@@ -171,7 +163,6 @@ const strings = {
     savedToCookieHistory: "In Cookie-History gespeichert",
     confirmDeleteHistory:
       "Den gesamten Hookie-Verlauf aus diesem Browser löschen?",
-    // Theme
     lightMode: "Heller Modus",
     darkMode: "Dunkler Modus",
     settings: "Einstellungen",
@@ -192,7 +183,6 @@ const strings = {
     hours: "Stunden",
     save: "Speichern",
     saved: "Gespeichert",
-    // Additional UI strings
     languageEnglish: "English",
     languageGerman: "Deutsch",
     languageShortEN: "EN",

@@ -24,11 +24,8 @@ export default function SettingsPage() {
 
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("#7c3aed");
-  const [goalHours, setGoalHours] = useState<number>(dailyGoalHours ?? 8);
-  const [localWorkdays, setLocalWorkdays] = useState(
-    () =>
-      workdays ?? { mon: 8, tue: 8, wed: 8, thu: 8, fri: 8, sat: 0, sun: 0 },
-  );
+  const [goalHours, setGoalHours] = useState<number>(dailyGoalHours);
+  const [localWorkdays, setLocalWorkdays] = useState(() => workdays);
   const [saved, setSaved] = useState(false);
 
   return (
@@ -40,6 +37,7 @@ export default function SettingsPage() {
               {t("settingsHeader", language)}
             </h2>
             <button
+              type="button"
               onClick={() => navigate(-1)}
               className="action-button"
               aria-label={t("closeLabel", language)}
@@ -138,6 +136,7 @@ export default function SettingsPage() {
                       <span className="text-sm">{tag.name}</span>
                     </div>
                     <button
+                      type="button"
                       onClick={() =>
                         setTags(tags.filter((tg) => tg.id !== tag.id))
                       }
@@ -229,7 +228,7 @@ export default function SettingsPage() {
               <div className="flex gap-2">
                 <button
                   type="button"
-                  className={"primary-button" + (saved ? " opacity-90" : "")}
+                  className={`primary-button${saved ? " opacity-90" : ""}`}
                   onClick={() => {
                     setDailyGoalHours(goalHours);
                     setWorkdays(localWorkdays);
@@ -247,17 +246,17 @@ export default function SettingsPage() {
            </section>
 
            <section className="surface mb-4 p-4 border border-red-200 dark:border-red-900/30">
-             <p className="eyebrow text-red-600 dark:text-red-400">{t("dangerZone", language) || "Danger Zone"}</p>
+             <p className="eyebrow text-red-600 dark:text-red-400">{t("dangerZone", language)}</p>
              <div className="mt-4 flex flex-col gap-3">
                <div className="text-sm text-slate-600 dark:text-slate-400">
-                 {t("hardResetDescription", language) || "Permanently delete all tracked time entries. This action cannot be undone."}
+                 {t("hardResetDescription", language)}
                </div>
                <button
                  type="button"
                  className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white px-4 py-2 rounded w-full sm:w-auto"
                  onClick={handleClearHistory}
                >
-                 {t("hardReset", language) || "Hard Reset"}
+                 {t("hardReset", language)}
                </button>
              </div>
            </section>

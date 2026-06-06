@@ -15,7 +15,11 @@ interface LanguageContextValue {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
+interface LanguageProviderProps {
+  readonly children: ReactNode;
+}
+
+export function LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguageState] = useState<Language>(
     () => readLanguage() ?? "en",
   );

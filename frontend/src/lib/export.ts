@@ -4,7 +4,7 @@ import t from '../i18n'
 
 function buildHistoryText(history: HistoryEntry[], tags: Tag[], language: Language) {
   const lines = history.flatMap((entry, index) => {
-    const tagName = entry.tagId ? tags.find((t) => t.id === entry.tagId)?.name ?? t('deletedLabel', language) : null
+    const tagName = entry.tagId ? tags.find((tag) => tag.id === entry.tagId)?.name ?? t('deletedLabel', language) : null
 
     const block = [
       `${index + 1}. ${entry.taskName}${tagName ? ` — ${tagName}` : ''}`,
@@ -20,7 +20,7 @@ function buildHistoryText(history: HistoryEntry[], tags: Tag[], language: Langua
 }
 
 export function downloadHistory(history: HistoryEntry[], tags: Tag[] = [], language: Language = 'en') {
-  const historyText = buildHistoryText(history.map((e) => ({ ...e } as HistoryEntry)), tags, language)
+  const historyText = buildHistoryText(history, tags, language)
   const blob = new Blob([historyText], { type: 'text/plain;charset=utf-8' })
   const downloadUrl = window.URL.createObjectURL(blob)
   const link = document.createElement('a')

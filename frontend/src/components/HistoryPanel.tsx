@@ -1,4 +1,4 @@
-import { type HistoryEntry, type Tag } from "../lib/cookies";
+import { type HistoryEntry, type Tag, type Language } from "../lib/cookies";
 import {
   formatDateTime,
   formatDuration,
@@ -6,14 +6,41 @@ import {
   formatTime,
 } from "../lib/time";
 import t from "../i18n";
-import type { Language } from "../lib/cookies";
 
 interface HistoryPanelProps {
-  history: HistoryEntry[];
-  totalTrackedMs: number;
-  tags?: Tag[];
-  onExport: () => void;
-  language: Language;
+  readonly history: HistoryEntry[];
+  readonly totalTrackedMs: number;
+  readonly tags?: Tag[];
+  readonly onExport: () => void;
+  readonly language: Language;
+}
+
+interface TagBadgeProps {
+  readonly tagId: string;
+  readonly tags: Tag[];
+  readonly language: Language;
+}
+
+function TagBadge({ tagId, tags, language }: TagBadgeProps) {
+  const tag = tags.find((tg) => tg.id === tagId);
+  return (
+    <span
+      className="ml-2 inline-flex items-center gap-2 rounded px-2 py-1 text-xs font-medium"
+      style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+    >
+      <span
+        style={{
+          width: 10,
+          height: 10,
+          background: tag?.color ?? "transparent",
+        }}
+        className="inline-block rounded-full"
+      />
+      <span className="truncate max-w-[8rem] block">
+        {tag?.name ?? t("deletedLabel", language)}
+      </span>
+    </span>
+  );
 }
 
 export function HistoryPanel({
@@ -76,29 +103,7 @@ export function HistoryPanel({
                 <p className="display-face text-xl font-semibold text-slate-950 dark:text-white flex items-center gap-3">
                   <span className="min-w-0 truncate">{entry.taskName}</span>
                   {entry.tagId ? (
-                    <span
-                      className="ml-2 inline-flex items-center gap-2 rounded px-2 py-1 text-xs font-medium"
-                      style={{ border: "1px solid rgba(0,0,0,0.06)" }}
-                    >
-                      {(() => {
-                        const tag = tags.find((t) => t.id === entry.tagId);
-                        return (
-                          <>
-                            <span
-                              style={{
-                                width: 10,
-                                height: 10,
-                                background: tag?.color ?? "transparent",
-                              }}
-                              className="inline-block rounded-full"
-                            />
-                            <span className="truncate max-w-[8rem] block">
-                              {tag?.name ?? t("deletedLabel", language)}
-                            </span>
-                          </>
-                        );
-                      })()}
-                    </span>
+                    <TagBadge tagId={entry.tagId} tags={tags} language={language} />
                   ) : null}
                 </p>
                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
@@ -131,9 +136,9 @@ export function HistoryPanel({
 }
 
 interface DetailProps {
-  label: string;
-  value: string;
-  helper: string;
+  readonly label: string;
+  readonly value: string;
+  readonly helper: string;
 }
 
 function Detail({ label, value, helper }: DetailProps) {

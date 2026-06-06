@@ -3,7 +3,6 @@ import Cookies from 'js-cookie'
 export interface ActiveSession {
   taskName: string
   startTimestamp: number
-  // optional tag id assigned when the session was started
   tagId?: string
 }
 
@@ -13,7 +12,6 @@ export interface HistoryEntry {
   startTimestamp: number
   endTimestamp: number
   durationMs: number
-  // optional tag id for this entry
   tagId?: string
 }
 
@@ -21,8 +19,6 @@ export type ThemeMode = 'light' | 'dark'
 
 const ACTIVE_SESSION_COOKIE = 'hookie.active-session'
 const HISTORY_COOKIE = 'hookie.history'
-// History is stored in localStorage (no size limit) instead of a cookie (~4 KB limit),
-// so there is no upper bound on how many tasks can be saved.
 const HISTORY_STORAGE_KEY = 'hookie.history'
 const THEME_COOKIE = 'hookie.theme'
 const COOKIE_PATH = import.meta.env.BASE_URL || '/'
@@ -74,8 +70,6 @@ function isActiveSession(value: unknown): value is ActiveSession {
     typeof candidate.taskName === 'string' &&
     candidate.taskName.trim().length > 0 &&
     isFiniteNumber(candidate.startTimestamp)
-    // tagId is optional and if present should be a string
-    // (no further validation here)
   )
 }
 
@@ -93,7 +87,6 @@ function isHistoryEntry(value: unknown): value is HistoryEntry {
     isFiniteNumber(candidate.startTimestamp) &&
     isFiniteNumber(candidate.endTimestamp) &&
     isFiniteNumber(candidate.durationMs)
-    // tagId is optional
   )
 }
 
@@ -117,7 +110,6 @@ export function clearActiveSession() {
 }
 
 export function readHistory() {
-  // Prefer localStorage (no size limit). Fall back to migrating the legacy cookie.
   let raw: string | undefined
   try {
     raw = window.localStorage.getItem(HISTORY_STORAGE_KEY) ?? undefined
@@ -131,7 +123,6 @@ export function readHistory() {
       raw = legacy
       const migrated = safeParseJson<unknown>(legacy)
       if (Array.isArray(migrated)) {
-        // Move the data over to localStorage and drop the old cookie.
         writeHistory(migrated.filter(isHistoryEntry))
         Cookies.remove(HISTORY_COOKIE, COOKIE_REMOVE_OPTIONS)
       }
@@ -147,6 +138,16 @@ export function readHistory() {
   return parsedHistory.filter(isHistoryEntry)
 }
 
+function isTag(value: unknown): value is Tag {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const candidate = value as Partial<Tag>
+
+  return typeof candidate.id === 'string' && typeof candidate.name === 'string'
+}
+
 export function readTags() {
   const parsed = safeParseJson<unknown>(Cookies.get(TAGS_COOKIE))
 
@@ -154,12 +155,11 @@ export function readTags() {
     return [] as Tag[]
   }
 
-  // basic validation
-  return parsed.filter((t) => t && typeof t === 'object' && typeof (t as any).id === 'string' && typeof (t as any).name === 'string') as Tag[]
+  return parsed.filter(isTag)
 }
 
 export function writeTags(tags: Tag[]) {
-  if (!tags || tags.length === 0) {
+  if (tags.length === 0) {
     Cookies.remove(TAGS_COOKIE, COOKIE_REMOVE_OPTIONS)
     return
   }
@@ -168,16 +168,15 @@ export function writeTags(tags: Tag[]) {
 }
 
 export function writeHistory(history: HistoryEntry[]) {
-  // Store the full history with no size limit so any number of tasks can be saved.
   try {
-    if (!history || history.length === 0) {
+    if (history.length === 0) {
       window.localStorage.removeItem(HISTORY_STORAGE_KEY)
       return
     }
 
     window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history))
   } catch {
-    // Ignore storage errors (e.g. private mode); data simply won't persist.
+    /* storage may be unavailable (e.g. private mode); data simply won't persist */
   }
 }
 
@@ -255,7 +254,6 @@ export function readWorkdays(): WorkdaysMap {
   const parsed = safeParseJson<unknown>(Cookies.get(WORKDAYS_COOKIE))
   if (isWorkdaysMap(parsed)) return parsed
 
-  // default: Mon-Fri 8h, Sat/Sun 0h
   return { mon: 8, tue: 8, wed: 8, thu: 8, fri: 8, sat: 0, sun: 0 }
 }
 

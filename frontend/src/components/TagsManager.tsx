@@ -26,7 +26,7 @@ export default function TagsManager({
   };
 
   const handleDelete = (id: string) => {
-    onChange(tags.filter((t) => t.id !== id));
+    onChange(tags.filter((tag) => tag.id !== id));
   };
 
   return (
@@ -46,6 +46,7 @@ export default function TagsManager({
           aria-label={t("colorPicker", language)}
         />
         <button
+          type="button"
           onClick={handleAdd}
           className="action-button w-full sm:w-auto ml-2"
         >
@@ -65,6 +66,7 @@ export default function TagsManager({
             />
             <span className="text-xs">{tag.name}</span>
             <button
+              type="button"
               onClick={() => handleDelete(tag.id)}
               className="ml-2 text-xs text-red-600"
             >
