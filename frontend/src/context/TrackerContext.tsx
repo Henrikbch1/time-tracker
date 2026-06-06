@@ -57,6 +57,10 @@ interface TrackerContextValue {
     handleStop: () => void;
     handleExport: () => void;
     handleClearHistory: () => void;
+    handleUpdateHistoryEntry: (
+        entryId: string,
+        payload: { startTimestamp: number; durationMs: number },
+    ) => void;
 }
 
 const TrackerContext = createContext<TrackerContextValue | null>(null);
@@ -90,9 +94,7 @@ function getInitialState() {
 
 export function TrackerProvider({children}: Readonly<{ children: ReactNode }>) {
     const {language} = useLanguage();
-    // include the setter (prefixed with `_` to avoid unused-var lint) so the
-    // useState call is destructured into the value+setter pair
-    const [initial, _setInitial] = useState(getInitialState);
+    const [initial] = useState(getInitialState);
     const [taskName, setTaskName] = useState(initial.taskName);
     const [activeSession, setActiveSession] = useState<ActiveSession | null>(
         initial.activeSession,
@@ -210,6 +212,33 @@ export function TrackerProvider({children}: Readonly<{ children: ReactNode }>) {
         setHistory([]);
     }, [history, language]);
 
+    const handleUpdateHistoryEntry = useCallback(
+        (
+            entryId: string,
+            payload: { startTimestamp: number; durationMs: number },
+        ) => {
+            const durationMs = Math.max(0, Math.floor(payload.durationMs));
+            const startTimestamp = Math.floor(payload.startTimestamp);
+            const endTimestamp = startTimestamp + durationMs;
+
+            if (!Number.isFinite(startTimestamp) || durationMs <= 0) return;
+
+            setHistory((prev) =>
+                prev.map((entry) =>
+                    entry.id === entryId
+                        ? {
+                              ...entry,
+                              startTimestamp,
+                              durationMs,
+                              endTimestamp,
+                          }
+                        : entry,
+                ),
+            );
+        },
+        [],
+    );
+
     const value = useMemo(
         () => ({
             taskName,
@@ -235,6 +264,7 @@ export function TrackerProvider({children}: Readonly<{ children: ReactNode }>) {
             handleStop,
             handleExport,
             handleClearHistory,
+            handleUpdateHistoryEntry,
         }),
         [
             taskName,
@@ -255,6 +285,7 @@ export function TrackerProvider({children}: Readonly<{ children: ReactNode }>) {
             handleStop,
             handleExport,
             handleClearHistory,
+            handleUpdateHistoryEntry,
         ],
     );
 
