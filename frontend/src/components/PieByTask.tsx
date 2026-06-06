@@ -34,14 +34,11 @@ function describeArc(
   return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`;
 }
 
-function stringToHslColor(str: string, s = 65, l = 55) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    hash |= 0;
-  }
-  const h = Math.abs(hash) % 360;
-  return `hsl(${h} ${s}% ${l}%)`;
+function colorByIndex(index: number) {
+  const hue = Math.round((index * 137.508) % 360);
+  const saturation = index % 2 === 0 ? 72 : 66;
+  const lightness = index % 3 === 0 ? 52 : 58;
+  return `hsl(${hue} ${saturation}% ${lightness}%)`;
 }
 
 export default function PieByTask({
@@ -50,7 +47,9 @@ export default function PieByTask({
   size = 220,
   language,
 }: Props) {
-  const entries = Object.entries(totalsByTask).filter(([, ms]) => ms > 0);
+  const entries = Object.entries(totalsByTask)
+    .filter(([, ms]) => ms > 0)
+    .sort((a, b) => b[1] - a[1]);
   if (entries.length === 0 || totalMs === 0) {
     return (
       <article className="stat-tile">
@@ -68,7 +67,7 @@ export default function PieByTask({
 
   let angle = -90;
 
-  const slices = entries.map(([taskName, ms]) => {
+  const slices = entries.map(([taskName, ms], index) => {
     const portion = ms / totalMs;
     const sweep = portion * 360;
     const slice = {
@@ -76,7 +75,7 @@ export default function PieByTask({
       ms,
       startAngle: angle,
       endAngle: angle + sweep,
-      color: stringToHslColor(taskName),
+      color: colorByIndex(index),
       portion,
     };
     angle += sweep;
@@ -89,7 +88,7 @@ export default function PieByTask({
       <div className="mt-5 flex w-full flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <svg
           viewBox={`0 0 ${size} ${size}`}
-          className="mx-auto w-full max-w-[220px] h-auto lg:mx-0 lg:flex-none"
+          className="mx-auto h-auto w-full max-w-55 lg:mx-0 lg:flex-none"
           aria-hidden
         >
           {slices.map((s, i) => (
