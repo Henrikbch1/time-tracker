@@ -26,6 +26,8 @@ export default function HomePage() {
     totalTrackedMs,
     totalsByTag,
     totalsByTask,
+    todayTrackedMs,
+    totalsByTaskToday,
     completedToday,
     latestEntry,
     handleStart,
@@ -144,6 +146,8 @@ export default function HomePage() {
             <PieByTask
               totalsByTask={totalsByTask}
               totalMs={totalTrackedMs + (activeSession ? elapsedMs : 0)}
+              todayTotalsByTask={totalsByTaskToday}
+              todayTotalMs={todayTrackedMs}
               language={language}
             />
             <TimeByDay
