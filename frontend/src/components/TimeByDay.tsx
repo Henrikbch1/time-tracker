@@ -61,7 +61,7 @@ export default function TimeByDay({
   });
 
   if (activeSession) {
-    const activeDateKey = formatLocalYMD(activeSession.startTimestamp);
+    const activeDateKey = formatLocalYMD(activeSession.createdTimestamp);
     const todayKey = formatLocalYMD(daysArr[dayOfWeek].ts);
     if (activeDateKey === todayKey) {
       daysArr[dayOfWeek].ms += elapsedMs || 0;
@@ -101,8 +101,12 @@ export default function TimeByDay({
     (total, day) => total + (day.workHours ?? 0) * 3_600_000,
     0,
   );
-  const weekTrackedMs = chartData.reduce((total, day) => total + day.trackedMs, 0);
-  const weekPercent = weekTargetMs > 0 ? Math.round((weekTrackedMs / weekTargetMs) * 100) : 0;
+  const weekTrackedMs = chartData.reduce(
+    (total, day) => total + day.trackedMs,
+    0,
+  );
+  const weekPercent =
+    weekTargetMs > 0 ? Math.round((weekTrackedMs / weekTargetMs) * 100) : 0;
   const weekRemainingMs = Math.max(0, weekTargetMs - weekTrackedMs);
 
   const chartHeight = 184;
@@ -128,7 +132,7 @@ export default function TimeByDay({
             >
               {[0, 1, 2, 3, 4].map((i) => {
                 const y = margin.top + i * rowStep;
-                const hours = Math.round((maxHours * (1 - i / 4)) * 10) / 10;
+                const hours = Math.round(maxHours * (1 - i / 4) * 10) / 10;
                 return (
                   <g key={i}>
                     <line
@@ -154,7 +158,10 @@ export default function TimeByDay({
               {chartData.map((d, index) => {
                 const groupWidth = innerWidth / chartData.length;
                 const barWidth = Math.min(24, groupWidth * 0.6);
-                const x = margin.left + index * groupWidth + (groupWidth - barWidth) / 2;
+                const x =
+                  margin.left +
+                  index * groupWidth +
+                  (groupWidth - barWidth) / 2;
                 const targetHeight = (d.targetHours / maxHours) * innerHeight;
                 const trackedHeight =
                   (Math.min(d.trackedHours, maxHours) / maxHours) * innerHeight;
@@ -217,7 +224,10 @@ export default function TimeByDay({
       </div>
       <div className="mt-2 flex items-center justify-center gap-4 text-xs text-slate-600 dark:text-slate-300">
         <span className="inline-flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-sm bg-slate-400/50" aria-hidden />
+          <span
+            className="h-2.5 w-2.5 rounded-sm bg-slate-400/50"
+            aria-hidden
+          />
           {t("dailyGoalLabel", language ?? "en")}
         </span>
         <span className="inline-flex items-center gap-2">
@@ -234,8 +244,12 @@ export default function TimeByDay({
             </p>
           </div>
           <div className="text-right text-sm text-slate-600 dark:text-slate-300">
-            <div className="font-medium text-slate-900 dark:text-white">{weekPercent}%</div>
-            <div>{formatDuration(weekRemainingMs)} {t("hours", language ?? "en")}</div>
+            <div className="font-medium text-slate-900 dark:text-white">
+              {weekPercent}%
+            </div>
+            <div>
+              {formatDuration(weekRemainingMs)} {t("hours", language ?? "en")}
+            </div>
           </div>
         </div>
 

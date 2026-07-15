@@ -1,16 +1,21 @@
 import { formatDateTime, formatDuration } from "../lib/time";
 import t from "../i18n";
-import type { Language, Tag } from "../lib/cookies";
+import type { ActiveSession, Language, Tag } from "../lib/cookies";
 
 interface TrackerCardProps {
   taskName: string;
   isRunning: boolean;
+  activeTaskName?: string;
   elapsedMs: number;
   startTimestamp?: number;
   onTaskNameChange: (value: string) => void;
   onStart: () => void;
+  onPause: () => void;
+  onResumePaused: (sessionId: string) => void;
+  onStopPaused: (sessionId: string) => void;
   onStop: () => void;
   tags: Tag[];
+  pausedSessions: ActiveSession[];
   selectedTagId: string | null;
   onSelectTag: (tagId: string | null) => void;
   language: Language;
@@ -19,12 +24,17 @@ interface TrackerCardProps {
 export function TrackerCard({
   taskName,
   isRunning,
+  activeTaskName,
   elapsedMs,
   startTimestamp,
   onTaskNameChange,
   onStart,
+  onPause,
+  onResumePaused,
+  onStopPaused,
   onStop,
   tags,
+  pausedSessions,
   selectedTagId,
   onSelectTag,
   language,
@@ -50,7 +60,14 @@ export function TrackerCard({
           <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
             {isRunning && startTimestamp
               ? `${t("startedAt", language)} ${formatDateTime(startTimestamp)}`
-              : t("readyToBegin", language)}
+              : pausedSessions.length > 0
+                ? t("pausedTasksHint", language)
+                : t("readyToBegin", language)}
+          </p>
+          <p className="mt-2 text-sm font-medium text-slate-800 dark:text-slate-100">
+            {isRunning && activeTaskName
+              ? `${t("activeTaskLabel", language)} ${activeTaskName}`
+              : t("noActiveTask", language)}
           </p>
         </div>
       </div>
@@ -61,9 +78,8 @@ export function TrackerCard({
           <input
             value={taskName}
             onChange={(event) => onTaskNameChange(event.target.value)}
-            disabled={isRunning}
             placeholder={t("placeholderTask", language)}
-            className="mt-3 w-full rounded-[1.5rem] border border-slate-300/70 bg-white/85 px-5 py-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-200 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-white/25 dark:focus:ring-white/10"
+            className="mt-3 w-full rounded-3xl border border-slate-300/70 bg-white/85 px-5 py-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-200 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-white/25 dark:focus:ring-white/10"
           />
         </label>
 
@@ -74,8 +90,7 @@ export function TrackerCard({
             onChange={(e) =>
               onSelectTag(e.target.value === "" ? null : e.target.value)
             }
-            disabled={isRunning}
-            className="mt-3 w-full rounded-[1.5rem] border border-slate-300/70 bg-white/85 px-4 py-3 text-base text-slate-900 outline-none dark:border-white/20 dark:bg-slate-800 dark:text-slate-100"
+            className="mt-3 w-full rounded-3xl border border-slate-300/70 bg-white/85 px-4 py-3 text-base text-slate-900 outline-none dark:border-white/20 dark:bg-slate-800 dark:text-slate-100"
           >
             <option value="">{t("noTag", language)}</option>
             {tags.map((tag) => (
@@ -90,10 +105,18 @@ export function TrackerCard({
           <button
             type="button"
             onClick={onStart}
-            disabled={isRunning || taskName.trim().length === 0}
+            disabled={taskName.trim().length === 0}
             className="primary-button w-full sm:w-auto"
           >
             {t("startTimer", language)}
+          </button>
+          <button
+            type="button"
+            onClick={onPause}
+            disabled={!isRunning}
+            className="action-button w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-55"
+          >
+            {t("pauseTimer", language)}
           </button>
           <button
             type="button"
@@ -105,6 +128,45 @@ export function TrackerCard({
           </button>
         </div>
       </div>
+
+      {pausedSessions.length > 0 ? (
+        <div className="mt-8">
+          <p className="eyebrow">{t("pausedTasksTitle", language)}</p>
+          <div className="mt-3 grid gap-3">
+            {pausedSessions.map((session) => (
+              <article
+                key={session.sessionId}
+                className="surface-muted flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
+                    {session.taskName}
+                  </p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">
+                    {formatDuration(session.accumulatedMs)}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onResumePaused(session.sessionId)}
+                    className="primary-button"
+                  >
+                    {t("resumeTimer", language)}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onStopPaused(session.sessionId)}
+                    className="action-button"
+                  >
+                    {t("stopAndSave", language)}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         <div className="surface-muted px-4 py-4 text-left">
