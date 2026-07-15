@@ -44,6 +44,10 @@ function colorByIndex(index: number) {
   return `hsl(${hue} ${saturation}% ${lightness}%)`;
 }
 
+function isFullCircle(startAngle: number, endAngle: number) {
+  return endAngle - startAngle >= 359.9;
+}
+
 export default function PieByTask({
   totalsByTask,
   totalMs,
@@ -113,13 +117,17 @@ export default function PieByTask({
             className="mx-auto h-auto w-full max-w-55 lg:mx-0 lg:flex-none"
             aria-hidden
           >
-            {slices.map((s, i) => (
-              <path
-                key={s.taskName + i}
-                d={describeArc(cx, cy, r, s.startAngle, s.endAngle)}
-                fill={s.color}
-              />
-            ))}
+            {slices.map((s, i) =>
+              isFullCircle(s.startAngle, s.endAngle) ? (
+                <circle key={s.taskName + i} cx={cx} cy={cy} r={r} fill={s.color} />
+              ) : (
+                <path
+                  key={s.taskName + i}
+                  d={describeArc(cx, cy, r, s.startAngle, s.endAngle)}
+                  fill={s.color}
+                />
+              ),
+            )}
             <circle cx={cx} cy={cy} r={r - 36} fill="var(--surface)" />
             <text
               x={cx}
