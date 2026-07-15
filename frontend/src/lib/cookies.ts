@@ -1,262 +1,374 @@
-import Cookies from 'js-cookie'
+import Cookies from "js-cookie";
 
 export interface ActiveSession {
-  taskName: string
-  startTimestamp: number
-  tagId?: string
+  sessionId: string;
+  taskName: string;
+  createdTimestamp: number;
+  accumulatedMs: number;
+  isPaused: boolean;
+  segmentStartTimestamp?: number;
+  pausedAtTimestamp?: number;
+  tagId?: string;
 }
 
 export interface HistoryEntry {
-  id: string
-  taskName: string
-  startTimestamp: number
-  endTimestamp: number
-  durationMs: number
-  tagId?: string
+  id: string;
+  taskName: string;
+  startTimestamp: number;
+  endTimestamp: number;
+  durationMs: number;
+  tagId?: string;
 }
 
-export type ThemeMode = 'light' | 'dark'
+export type ThemeMode = "light" | "dark";
 
-const ACTIVE_SESSION_COOKIE = 'hookie.active-session'
-const HISTORY_COOKIE = 'hookie.history'
-const HISTORY_STORAGE_KEY = 'hookie.history'
-const THEME_COOKIE = 'hookie.theme'
-const COOKIE_PATH = import.meta.env.BASE_URL || '/'
+const ACTIVE_SESSION_COOKIE = "hookie.active-session";
+const HISTORY_COOKIE = "hookie.history";
+const HISTORY_STORAGE_KEY = "hookie.history";
+const PAUSED_SESSIONS_STORAGE_KEY = "hookie.paused-sessions";
+const THEME_COOKIE = "hookie.theme";
+const COOKIE_PATH = import.meta.env.BASE_URL || "/";
 const COOKIE_WRITE_OPTIONS = {
   expires: 365,
   path: COOKIE_PATH,
-  sameSite: 'lax' as const,
-}
+  sameSite: "lax" as const,
+};
 const COOKIE_REMOVE_OPTIONS = {
   path: COOKIE_PATH,
-}
+};
 
-const TAGS_COOKIE = 'hookie.tags'
+const TAGS_COOKIE = "hookie.tags";
 
 export interface Tag {
-  id: string
-  name: string
-  color?: string
+  id: string;
+  name: string;
+  color?: string;
 }
 
 function safeParseJson<T>(value: string | undefined) {
   if (!value) {
-    return null
+    return null;
   }
 
   try {
-    return JSON.parse(value) as T
+    return JSON.parse(value) as T;
   } catch {
-    return null
+    return null;
   }
 }
 
 function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value)
+  return typeof value === "number" && Number.isFinite(value);
 }
 
 function isThemeMode(value: unknown): value is ThemeMode {
-  return value === 'light' || value === 'dark'
+  return value === "light" || value === "dark";
 }
 
 function isActiveSession(value: unknown): value is ActiveSession {
-  if (!value || typeof value !== 'object') {
-    return false
+  if (!value || typeof value !== "object") {
+    return false;
   }
 
-  const candidate = value as Partial<ActiveSession>
+  const candidate = value as Partial<ActiveSession>;
 
   return (
-    typeof candidate.taskName === 'string' &&
+    typeof candidate.sessionId === "string" &&
+    typeof candidate.taskName === "string" &&
     candidate.taskName.trim().length > 0 &&
-    isFiniteNumber(candidate.startTimestamp)
-  )
+    isFiniteNumber(candidate.createdTimestamp) &&
+    isFiniteNumber(candidate.accumulatedMs) &&
+    typeof candidate.isPaused === "boolean" &&
+    (candidate.segmentStartTimestamp === undefined ||
+      isFiniteNumber(candidate.segmentStartTimestamp)) &&
+    (candidate.pausedAtTimestamp === undefined ||
+      isFiniteNumber(candidate.pausedAtTimestamp))
+  );
+}
+
+function normalizeLegacyActiveSession(value: unknown): ActiveSession | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const candidate = value as {
+    taskName?: unknown;
+    startTimestamp?: unknown;
+    tagId?: unknown;
+  };
+
+  if (
+    typeof candidate.taskName !== "string" ||
+    candidate.taskName.trim().length === 0 ||
+    !isFiniteNumber(candidate.startTimestamp)
+  ) {
+    return null;
+  }
+
+  const startTimestamp = Math.floor(candidate.startTimestamp);
+
+  return {
+    sessionId: String(startTimestamp),
+    taskName: candidate.taskName.trim(),
+    createdTimestamp: startTimestamp,
+    accumulatedMs: 0,
+    isPaused: false,
+    segmentStartTimestamp: startTimestamp,
+    tagId: typeof candidate.tagId === "string" ? candidate.tagId : undefined,
+  };
 }
 
 function isHistoryEntry(value: unknown): value is HistoryEntry {
-  if (!value || typeof value !== 'object') {
-    return false
+  if (!value || typeof value !== "object") {
+    return false;
   }
 
-  const candidate = value as Partial<HistoryEntry>
+  const candidate = value as Partial<HistoryEntry>;
 
   return (
-    typeof candidate.id === 'string' &&
-    typeof candidate.taskName === 'string' &&
+    typeof candidate.id === "string" &&
+    typeof candidate.taskName === "string" &&
     candidate.taskName.trim().length > 0 &&
     isFiniteNumber(candidate.startTimestamp) &&
     isFiniteNumber(candidate.endTimestamp) &&
     isFiniteNumber(candidate.durationMs)
-  )
+  );
 }
 
-
 export function readActiveSession() {
-  const parsedSession = safeParseJson<unknown>(Cookies.get(ACTIVE_SESSION_COOKIE))
+  const parsedSession = safeParseJson<unknown>(
+    Cookies.get(ACTIVE_SESSION_COOKIE),
+  );
 
-  if (!isActiveSession(parsedSession)) {
-    return null
+  if (isActiveSession(parsedSession)) {
+    return parsedSession;
   }
 
-  return parsedSession
+  return normalizeLegacyActiveSession(parsedSession);
 }
 
 export function writeActiveSession(activeSession: ActiveSession) {
-  Cookies.set(ACTIVE_SESSION_COOKIE, JSON.stringify(activeSession), COOKIE_WRITE_OPTIONS)
+  Cookies.set(
+    ACTIVE_SESSION_COOKIE,
+    JSON.stringify(activeSession),
+    COOKIE_WRITE_OPTIONS,
+  );
 }
 
 export function clearActiveSession() {
-  Cookies.remove(ACTIVE_SESSION_COOKIE, COOKIE_REMOVE_OPTIONS)
+  Cookies.remove(ACTIVE_SESSION_COOKIE, COOKIE_REMOVE_OPTIONS);
+}
+
+export function readPausedSessions() {
+  let raw: string | undefined;
+  try {
+    raw = window.localStorage.getItem(PAUSED_SESSIONS_STORAGE_KEY) ?? undefined;
+  } catch {
+    raw = undefined;
+  }
+
+  const parsed = safeParseJson<unknown>(raw);
+
+  if (!Array.isArray(parsed)) {
+    return [] as ActiveSession[];
+  }
+
+  const normalized = parsed
+    .map((item) => {
+      if (isActiveSession(item)) {
+        return item;
+      }
+
+      return normalizeLegacyActiveSession(item);
+    })
+    .filter((item): item is ActiveSession => item != null);
+
+  return normalized
+    .map((item) => ({
+      ...item,
+      isPaused: true,
+      segmentStartTimestamp: undefined,
+      pausedAtTimestamp: item.pausedAtTimestamp ?? Date.now(),
+    }))
+    .sort((a, b) => (b.pausedAtTimestamp ?? 0) - (a.pausedAtTimestamp ?? 0));
+}
+
+export function writePausedSessions(sessions: ActiveSession[]) {
+  try {
+    if (sessions.length === 0) {
+      window.localStorage.removeItem(PAUSED_SESSIONS_STORAGE_KEY);
+      return;
+    }
+
+    window.localStorage.setItem(
+      PAUSED_SESSIONS_STORAGE_KEY,
+      JSON.stringify(sessions),
+    );
+  } catch {
+    /* storage may be unavailable (e.g. private mode); data simply won't persist */
+  }
+}
+
+export function clearPausedSessions() {
+  try {
+    window.localStorage.removeItem(PAUSED_SESSIONS_STORAGE_KEY);
+  } catch {
+    /* ignored */
+  }
 }
 
 export function readHistory() {
-  let raw: string | undefined
+  let raw: string | undefined;
   try {
-    raw = window.localStorage.getItem(HISTORY_STORAGE_KEY) ?? undefined
+    raw = window.localStorage.getItem(HISTORY_STORAGE_KEY) ?? undefined;
   } catch {
-    raw = undefined
+    raw = undefined;
   }
 
   if (raw === undefined) {
-    const legacy = Cookies.get(HISTORY_COOKIE)
+    const legacy = Cookies.get(HISTORY_COOKIE);
     if (legacy) {
-      raw = legacy
-      const migrated = safeParseJson<unknown>(legacy)
+      raw = legacy;
+      const migrated = safeParseJson<unknown>(legacy);
       if (Array.isArray(migrated)) {
-        writeHistory(migrated.filter(isHistoryEntry))
-        Cookies.remove(HISTORY_COOKIE, COOKIE_REMOVE_OPTIONS)
+        writeHistory(migrated.filter(isHistoryEntry));
+        Cookies.remove(HISTORY_COOKIE, COOKIE_REMOVE_OPTIONS);
       }
     }
   }
 
-  const parsedHistory = safeParseJson<unknown>(raw)
+  const parsedHistory = safeParseJson<unknown>(raw);
 
   if (!Array.isArray(parsedHistory)) {
-    return []
+    return [];
   }
 
-  return parsedHistory.filter(isHistoryEntry)
+  return parsedHistory.filter(isHistoryEntry);
 }
 
 function isTag(value: unknown): value is Tag {
-  if (!value || typeof value !== 'object') {
-    return false
+  if (!value || typeof value !== "object") {
+    return false;
   }
 
-  const candidate = value as Partial<Tag>
+  const candidate = value as Partial<Tag>;
 
-  return typeof candidate.id === 'string' && typeof candidate.name === 'string'
+  return typeof candidate.id === "string" && typeof candidate.name === "string";
 }
 
 export function readTags() {
-  const parsed = safeParseJson<unknown>(Cookies.get(TAGS_COOKIE))
+  const parsed = safeParseJson<unknown>(Cookies.get(TAGS_COOKIE));
 
   if (!Array.isArray(parsed)) {
-    return [] as Tag[]
+    return [] as Tag[];
   }
 
-  return parsed.filter(isTag)
+  return parsed.filter(isTag);
 }
 
 export function writeTags(tags: Tag[]) {
   if (tags.length === 0) {
-    Cookies.remove(TAGS_COOKIE, COOKIE_REMOVE_OPTIONS)
-    return
+    Cookies.remove(TAGS_COOKIE, COOKIE_REMOVE_OPTIONS);
+    return;
   }
 
-  Cookies.set(TAGS_COOKIE, JSON.stringify(tags), COOKIE_WRITE_OPTIONS)
+  Cookies.set(TAGS_COOKIE, JSON.stringify(tags), COOKIE_WRITE_OPTIONS);
 }
 
 export function writeHistory(history: HistoryEntry[]) {
   try {
     if (history.length === 0) {
-      window.localStorage.removeItem(HISTORY_STORAGE_KEY)
-      return
+      window.localStorage.removeItem(HISTORY_STORAGE_KEY);
+      return;
     }
 
-    window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history))
+    window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
   } catch {
     /* storage may be unavailable (e.g. private mode); data simply won't persist */
   }
 }
 
 export function readTheme() {
-  const theme = Cookies.get(THEME_COOKIE)
+  const theme = Cookies.get(THEME_COOKIE);
 
   if (!isThemeMode(theme)) {
-    return null
+    return null;
   }
 
-  return theme
+  return theme;
 }
 
 export function writeTheme(theme: ThemeMode) {
-  Cookies.set(THEME_COOKIE, theme, COOKIE_WRITE_OPTIONS)
+  Cookies.set(THEME_COOKIE, theme, COOKIE_WRITE_OPTIONS);
 }
 
-export type Language = 'en' | 'de'
+export type Language = "en" | "de";
 
-const LANG_COOKIE = 'hookie.lang'
+const LANG_COOKIE = "hookie.lang";
 
-const DAILY_GOAL_COOKIE = 'hookie.daily-goal'
-const WORKDAYS_COOKIE = 'hookie.workdays'
+const DAILY_GOAL_COOKIE = "hookie.daily-goal";
+const WORKDAYS_COOKIE = "hookie.workdays";
 
 function isLanguage(value: unknown): value is Language {
-  return value === 'en' || value === 'de'
+  return value === "en" || value === "de";
 }
 
 export function readLanguage() {
-  const lang = Cookies.get(LANG_COOKIE)
+  const lang = Cookies.get(LANG_COOKIE);
 
   if (!isLanguage(lang)) {
-    return null
+    return null;
   }
 
-  return lang
+  return lang;
 }
 
 export function writeLanguage(lang: Language) {
-  Cookies.set(LANG_COOKIE, lang, COOKIE_WRITE_OPTIONS)
+  Cookies.set(LANG_COOKIE, lang, COOKIE_WRITE_OPTIONS);
 }
 
 export function readDailyGoal() {
-  const v = Cookies.get(DAILY_GOAL_COOKIE)
-  if (!v) return null
-  const n = Number(v)
-  if (!isFiniteNumber(n) || n < 0 || n > 24) return null
-  return n
+  const v = Cookies.get(DAILY_GOAL_COOKIE);
+  if (!v) return null;
+  const n = Number(v);
+  if (!isFiniteNumber(n) || n < 0 || n > 24) return null;
+  return n;
 }
 
 export function writeDailyGoal(hours: number) {
   if (!isFiniteNumber(hours) || hours <= 0) {
-    Cookies.remove(DAILY_GOAL_COOKIE, COOKIE_REMOVE_OPTIONS)
-    return
+    Cookies.remove(DAILY_GOAL_COOKIE, COOKIE_REMOVE_OPTIONS);
+    return;
   }
 
-  Cookies.set(DAILY_GOAL_COOKIE, String(hours), COOKIE_WRITE_OPTIONS)
+  Cookies.set(DAILY_GOAL_COOKIE, String(hours), COOKIE_WRITE_OPTIONS);
 }
 
-type WorkdaysMap = Record<'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun', number>
+type WorkdaysMap = Record<
+  "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun",
+  number
+>;
 
 function isWorkdaysMap(value: unknown): value is WorkdaysMap {
-  if (!value || typeof value !== 'object') return false
-  const v = value as Record<string, unknown>
-  const keys = ['mon','tue','wed','thu','fri','sat','sun']
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  const keys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
   for (const k of keys) {
-    const x = v[k]
-    if (x === undefined) return false
-    if (typeof x !== 'number' || !Number.isFinite(x) || x < 0 || x > 24) return false
+    const x = v[k];
+    if (x === undefined) return false;
+    if (typeof x !== "number" || !Number.isFinite(x) || x < 0 || x > 24)
+      return false;
   }
-  return true
+  return true;
 }
 
 export function readWorkdays(): WorkdaysMap {
-  const parsed = safeParseJson<unknown>(Cookies.get(WORKDAYS_COOKIE))
-  if (isWorkdaysMap(parsed)) return parsed
+  const parsed = safeParseJson<unknown>(Cookies.get(WORKDAYS_COOKIE));
+  if (isWorkdaysMap(parsed)) return parsed;
 
-  return { mon: 8, tue: 8, wed: 8, thu: 8, fri: 8, sat: 0, sun: 0 }
+  return { mon: 8, tue: 8, wed: 8, thu: 8, fri: 8, sat: 0, sun: 0 };
 }
 
 export function writeWorkdays(map: WorkdaysMap) {
-  Cookies.set(WORKDAYS_COOKIE, JSON.stringify(map), COOKIE_WRITE_OPTIONS)
+  Cookies.set(WORKDAYS_COOKIE, JSON.stringify(map), COOKIE_WRITE_OPTIONS);
 }

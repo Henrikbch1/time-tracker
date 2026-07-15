@@ -11,6 +11,7 @@ import {
   clearActiveSession,
   readActiveSession,
   readHistory,
+  readPausedSessions,
   readTags,
   readDailyGoal,
   readWorkdays,
@@ -19,6 +20,7 @@ import {
   type Tag,
   writeActiveSession,
   writeHistory,
+  writePausedSessions,
   writeTags,
 } from "../lib/cookies";
 import { useLanguage } from "./LanguageContext";
@@ -37,6 +39,7 @@ interface TrackerContextValue {
   taskName: string;
   setTaskName: (name: string) => void;
   activeSession: ActiveSession | null;
+  pausedSessions: ActiveSession[];
   history: HistoryEntry[];
   tags: Tag[];
   setTags: (tags: Tag[]) => void;
@@ -56,6 +59,9 @@ interface TrackerContextValue {
   completedToday: number;
   latestEntry: HistoryEntry | null;
   handleStart: () => void;
+  handlePause: () => void;
+  handleResumePaused: (sessionId: string) => void;
+  handleStopPaused: (sessionId: string) => void;
   handleStop: () => void;
   handleExport: () => void;
   handleClearHistory: () => void;
@@ -69,12 +75,13 @@ const TrackerContext = createContext<TrackerContextValue | null>(null);
 
 function getInitialState() {
   const restoredSession = readActiveSession();
+  const restoredPaused = readPausedSessions();
   const history = readHistory();
 
   const alreadyCompleted =
     restoredSession != null &&
     history.some(
-      (entry) => entry.startTimestamp === restoredSession.startTimestamp,
+      (entry) => entry.startTimestamp === restoredSession.createdTimestamp,
     );
 
   if (alreadyCompleted) {
@@ -86,11 +93,38 @@ function getInitialState() {
   return {
     taskName: activeSession?.taskName ?? "",
     activeSession,
+    pausedSessions: restoredPaused,
     history,
     tags: readTags() ?? [],
     dailyGoalHours: readDailyGoal() ?? 8,
     workdays: readWorkdays(),
     now: Date.now(),
+  };
+}
+
+function getSessionElapsedMs(session: ActiveSession, currentTimestamp: number) {
+  const base = Math.max(0, Math.floor(session.accumulatedMs));
+
+  if (session.isPaused) {
+    return base;
+  }
+
+  const segmentStart =
+    session.segmentStartTimestamp ?? session.createdTimestamp;
+
+  return base + getElapsedDuration(segmentStart, currentTimestamp);
+}
+
+function toPausedSession(
+  session: ActiveSession,
+  pausedAtTimestamp: number,
+): ActiveSession {
+  return {
+    ...session,
+    accumulatedMs: getSessionElapsedMs(session, pausedAtTimestamp),
+    isPaused: true,
+    segmentStartTimestamp: undefined,
+    pausedAtTimestamp,
   };
 }
 
@@ -102,6 +136,9 @@ export function TrackerProvider({
   const [taskName, setTaskName] = useState(initial.taskName);
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(
     initial.activeSession,
+  );
+  const [pausedSessions, setPausedSessions] = useState<ActiveSession[]>(
+    initial.pausedSessions,
   );
   const [history, setHistory] = useState<HistoryEntry[]>(initial.history);
   const [tags, setTags] = useState<Tag[]>(initial.tags);
@@ -119,6 +156,10 @@ export function TrackerProvider({
   }, [activeSession]);
 
   useEffect(() => {
+    writePausedSessions(pausedSessions);
+  }, [pausedSessions]);
+
+  useEffect(() => {
     writeTags(tags);
   }, [tags]);
   useEffect(() => {
@@ -132,9 +173,7 @@ export function TrackerProvider({
     activeSession ? 250 : null,
   );
 
-  const elapsedMs = activeSession
-    ? getElapsedDuration(activeSession.startTimestamp, now)
-    : 0;
+  const elapsedMs = activeSession ? getSessionElapsedMs(activeSession, now) : 0;
   const totalTrackedMs = history.reduce(
     (total, entry) => total + entry.durationMs,
     0,
@@ -156,12 +195,19 @@ export function TrackerProvider({
       acc[entry.taskName] = (acc[entry.taskName] || 0) + entry.durationMs;
       return acc;
     }, {});
+
+    for (const paused of pausedSessions) {
+      map[paused.taskName] =
+        (map[paused.taskName] || 0) +
+        Math.max(0, Math.floor(paused.accumulatedMs));
+    }
+
     if (activeSession) {
       map[activeSession.taskName] =
         (map[activeSession.taskName] || 0) + elapsedMs;
     }
     return map;
-  }, [history, activeSession, elapsedMs]);
+  }, [history, pausedSessions, activeSession, elapsedMs]);
 
   const { todayTrackedMs, totalsByTaskToday } = useMemo(() => {
     const map: Record<string, number> = {};
@@ -175,7 +221,7 @@ export function TrackerProvider({
 
     if (
       activeSession &&
-      formatLocalYMD(activeSession.startTimestamp) === todayKey
+      formatLocalYMD(activeSession.createdTimestamp) === todayKey
     ) {
       map[activeSession.taskName] =
         (map[activeSession.taskName] || 0) + elapsedMs;
@@ -195,28 +241,78 @@ export function TrackerProvider({
   const handleStart = useCallback(() => {
     const normalized = taskName.trim();
     if (!normalized) return;
-    const startTimestamp = Date.now();
-    setTaskName(normalized);
-    setNow(startTimestamp);
+    const startedAt = Date.now();
+
+    if (activeSession) {
+      setPausedSessions((prev) => [
+        toPausedSession(activeSession, startedAt),
+        ...prev,
+      ]);
+    }
+
+    setTaskName("");
+    setNow(startedAt);
     setActiveSession({
+      sessionId: `${startedAt}-${Math.random().toString(36).slice(2, 8)}`,
       taskName: normalized,
-      startTimestamp,
+      createdTimestamp: startedAt,
+      accumulatedMs: 0,
+      isPaused: false,
+      segmentStartTimestamp: startedAt,
       tagId: selectedTagId ?? undefined,
     });
-  }, [taskName, selectedTagId]);
+  }, [taskName, selectedTagId, activeSession]);
+
+  const handlePause = useCallback(() => {
+    if (!activeSession) return;
+
+    const pausedAt = Date.now();
+    const paused = toPausedSession(activeSession, pausedAt);
+
+    setPausedSessions((prev) => [paused, ...prev]);
+    setActiveSession(null);
+    setNow(pausedAt);
+  }, [activeSession]);
+
+  const handleResumePaused = useCallback(
+    (sessionId: string) => {
+      const resumedAt = Date.now();
+      const target = pausedSessions.find(
+        (session) => session.sessionId === sessionId,
+      );
+      if (!target) return;
+
+      const remainingPaused = pausedSessions.filter(
+        (session) => session.sessionId !== sessionId,
+      );
+
+      const nextPaused = activeSession
+        ? [toPausedSession(activeSession, resumedAt), ...remainingPaused]
+        : remainingPaused;
+
+      setPausedSessions(nextPaused);
+      setActiveSession({
+        ...target,
+        isPaused: false,
+        pausedAtTimestamp: undefined,
+        segmentStartTimestamp: resumedAt,
+      });
+      setTaskName("");
+      setNow(resumedAt);
+    },
+    [pausedSessions, activeSession],
+  );
 
   const handleStop = useCallback(() => {
     if (!activeSession) return;
     const endTimestamp = Date.now();
+    const durationMs = getSessionElapsedMs(activeSession, endTimestamp);
     const nextEntry: HistoryEntry = {
-      id: `${activeSession.startTimestamp}-${endTimestamp}`,
+      id: `${activeSession.sessionId}-${endTimestamp}`,
       taskName: activeSession.taskName,
-      startTimestamp: activeSession.startTimestamp,
+      startTimestamp: activeSession.createdTimestamp,
       endTimestamp,
-      durationMs: getElapsedDuration(
-        activeSession.startTimestamp,
-        endTimestamp,
-      ),
+      durationMs,
       tagId: activeSession.tagId,
     };
     setHistory((h) => [nextEntry, ...h]);
@@ -224,6 +320,32 @@ export function TrackerProvider({
     setTaskName("");
     setNow(endTimestamp);
   }, [activeSession]);
+
+  const handleStopPaused = useCallback(
+    (sessionId: string) => {
+      const target = pausedSessions.find(
+        (session) => session.sessionId === sessionId,
+      );
+      if (!target) return;
+
+      const endTimestamp = Date.now();
+      const nextEntry: HistoryEntry = {
+        id: `${target.sessionId}-${endTimestamp}`,
+        taskName: target.taskName,
+        startTimestamp: target.createdTimestamp,
+        endTimestamp,
+        durationMs: Math.max(0, Math.floor(target.accumulatedMs)),
+        tagId: target.tagId,
+      };
+
+      setHistory((prev) => [nextEntry, ...prev]);
+      setPausedSessions((prev) =>
+        prev.filter((session) => session.sessionId !== sessionId),
+      );
+      setNow(endTimestamp);
+    },
+    [pausedSessions],
+  );
 
   const handleExport = useCallback(() => {
     if (history.length === 0) return;
@@ -268,6 +390,7 @@ export function TrackerProvider({
       taskName,
       setTaskName,
       activeSession,
+      pausedSessions,
       history,
       tags,
       setTags,
@@ -287,6 +410,9 @@ export function TrackerProvider({
       completedToday,
       latestEntry,
       handleStart,
+      handlePause,
+      handleResumePaused,
+      handleStopPaused,
       handleStop,
       handleExport,
       handleClearHistory,
@@ -295,6 +421,7 @@ export function TrackerProvider({
     [
       taskName,
       activeSession,
+      pausedSessions,
       history,
       tags,
       selectedTagId,
@@ -310,6 +437,9 @@ export function TrackerProvider({
       completedToday,
       latestEntry,
       handleStart,
+      handlePause,
+      handleResumePaused,
+      handleStopPaused,
       handleStop,
       handleExport,
       handleClearHistory,

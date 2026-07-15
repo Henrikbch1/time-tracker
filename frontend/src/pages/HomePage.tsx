@@ -16,6 +16,7 @@ export default function HomePage() {
     taskName,
     setTaskName,
     activeSession,
+    pausedSessions,
     history,
     tags,
     setSelectedTagId,
@@ -31,6 +32,9 @@ export default function HomePage() {
     completedToday,
     latestEntry,
     handleStart,
+    handlePause,
+    handleResumePaused,
+    handleStopPaused,
     handleStop,
     handleExport,
     handleUpdateHistoryEntry,
@@ -91,12 +95,17 @@ export default function HomePage() {
           <TrackerCard
             taskName={taskName}
             isRunning={Boolean(activeSession)}
+            activeTaskName={activeSession?.taskName}
             elapsedMs={elapsedMs}
-            startTimestamp={activeSession?.startTimestamp}
+            startTimestamp={activeSession?.createdTimestamp}
             onTaskNameChange={setTaskName}
             onStart={handleStart}
+            onPause={handlePause}
+            onResumePaused={handleResumePaused}
+            onStopPaused={handleStopPaused}
             onStop={handleStop}
             tags={tags}
+            pausedSessions={pausedSessions}
             selectedTagId={selectedTagId}
             onSelectTag={setSelectedTagId}
             language={language}

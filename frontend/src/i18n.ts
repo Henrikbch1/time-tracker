@@ -33,7 +33,13 @@ const strings = {
     tagNamePlaceholder: "Tag name",
     addTag: "Add tag",
     startTimer: "Start timer",
+    pauseTimer: "Pause task",
+    resumeTimer: "Resume",
     stopAndSave: "Stop and save",
+    pausedTasksTitle: "Paused tasks",
+    pausedTasksHint: "No active task. Resume a paused task or start a new one.",
+    activeTaskLabel: "Active task:",
+    noActiveTask: "No active task",
     persistenceTitle: "Persistence",
     persistenceDesc:
       "Active task name and start time are mirrored into browser cookies via js-cookie.",
@@ -145,7 +151,14 @@ const strings = {
     tagNamePlaceholder: "Tag-Name",
     addTag: "Tag hinzufügen",
     startTimer: "Timer starten",
+    pauseTimer: "Task pausieren",
+    resumeTimer: "Fortsetzen",
     stopAndSave: "Stoppen und speichern",
+    pausedTasksTitle: "Pausierte Tasks",
+    pausedTasksHint:
+      "Kein aktiver Task. Setze einen pausierten Task fort oder starte einen neuen.",
+    activeTaskLabel: "Aktiver Task:",
+    noActiveTask: "Kein aktiver Task",
     persistenceTitle: "Persistenz",
     persistenceDesc:
       "Aktiver Aufgabenname und Startzeit werden via js-cookie in Browser-Cookies gespiegelt.",
