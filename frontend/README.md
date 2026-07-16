@@ -1,75 +1,99 @@
-# Frontend — React + TypeScript + Vite
+# Frontend - React + TypeScript + Vite
 
-Dieses Verzeichnis enthält die Frontend-Anwendung der `Time Tracker`-App. Die folgenden Hinweise helfen beim lokalen Entwickeln, Bauen und Deployen.
+Dieses Verzeichnis enthaelt die Frontend-Anwendung des Time Trackers.
 
-Inhaltsverzeichnis
+Live-Demo: [Hookie | TimeTracker](https://henrikbch1.github.io/time-tracker/)
 
-- [Kurzüberblick](#kurzüberblick)
+## Inhaltsverzeichnis
+
+- [Kurzueberblick](#kurzueberblick)
+- [Tracking-Workflow](#tracking-workflow)
+- [Feature-Einblick](#feature-einblick)
 - [Schnellstart](#schnellstart)
-- [Wichtige Scripts](#wichtige-scripts)
+- [Wichtige Skripte](#wichtige-skripte)
 - [Projektstruktur](#projektstruktur)
-- [Entwicklung & Debugging](#entwicklung--debugging)
-- [Build & Deploy](#build--deploy)
-- [Internationale Unterstützung (i18n)](#internationale-unterst%C3%BCtzung-i18n)
+- [Entwicklung und Debugging](#entwicklung-und-debugging)
+- [Build und Deploy](#build-und-deploy)
+- [Internationalisierung (i18n)](#internationalisierung-i18n)
 - [Mitwirken](#mitwirken)
 
-## Kurzüberblick
+## Kurzueberblick
 
-- Version: 0.4.3 (siehe `package.json`)
+- Version: siehe `package.json`
 - Entrypoint: `src/main.tsx`
+- Styling: Tailwind CSS
 
-Hinweis: Styling erfolgt mit Tailwind CSS.
+Aktueller Stand:
 
-Aktueller Status: Export ist derzeit als einfacher `.txt`-Export implementiert; eine dedizierte manuelle Zeiteingabe (Formular) ist aktuell nicht vorhanden.
+- Export ist aktuell als einfacher `.txt`-Export umgesetzt.
+- Eine dedizierte manuelle Zeiteingabe per Formular ist derzeit nicht vorhanden.
+
+## Tracking-Workflow
+
+1. Aufgabe eingeben und optional einen Tag auswaehlen.
+2. Session per `Start` beginnen.
+3. Laufende Zeit wird live angezeigt.
+4. Session per `Stop` beenden.
+5. Eintrag landet in der Historie und fliesst in Reports/Charts ein.
+
+Hinweise:
+
+- Es ist immer nur eine aktive Session moeglich.
+- Pause/Resume ist aktuell nicht enthalten.
+
+## Feature-Einblick
+
+- Dashboard mit KPI-Karten fuer Tages-/Wochenwerte.
+- Reports mit grafischen Auswertungen (z. B. Balken/Kreis).
+- Historie mit Bearbeitungsmoeglichkeiten.
+- Tag-Management fuer Aufgaben.
+- Theme-Umschaltung und Spracheinstellungen.
+- Datenexport (aktuell `.txt`).
 
 ## Schnellstart
 
 ```bash
 cd frontend
-npm ci
+npm install
 npm run dev
-# Öffne die in der Konsole angezeigte URL (z. B. http://localhost:5173)
 ```
 
-npm install
+Oeffne dann die in der Konsole angezeigte URL (z. B. `http://localhost:5173`).
 
-- `npm run dev` — Startet Vite im Entwicklungsmodus
-- `npm run build` — Baut Produktionsassets
-- `npm run preview` — Vorschau des Builds
-- `npm run deploy` — Deploy (z. B. über `gh-pages` nach erstem Build)
-- `npm run lint` — ESLint prüfen
-## Build & Deploy
+## Wichtige Skripte
+
+- `npm run dev` - Startet Vite im Entwicklungsmodus
+- `npm run build` - Baut Produktionsassets
+- `npm run preview` - Lokale Vorschau des Builds
+- `npm run deploy` - Deploy ueber `gh-pages` (nach Build)
+- `npm run lint` - ESLint ausfuehren
 
 ## Projektstruktur
 
-- `src/` — React-Komponenten, Hooks, Utilities
-  - `components/` — UI-Komponenten (TrackerCard, Settings, Panels)
-Hinweis: `npm install` ist üblich; `npm ci` ist optional für strikt reproduzierbare Installs wenn du eine `package-lock.json` verwendest.
-  - `utils/` — Hilfsfunktionen für Datum, Zeit, Export, Cookies
-- `public/` — statische Assets (Icons, favicon)
-- `index.html` — HTML-Template
-- `vite.config.ts` — Vite-Konfiguration
+- `src/` - React-Komponenten, Contexts, Hooks und Utilities
+- `public/` - Statische Assets (z. B. Icons, favicon)
+- `index.html` - HTML-Template
+- `vite.config.ts` - Vite-Konfiguration
 
-## Entwicklung & Debugging
+## Entwicklung und Debugging
 
-- Starte `npm run dev` und verwende die Browser-Devtools für Debugging
-- Prüfe TypeScript- und Linter-Warnungen vor dem Commit
+- Starte die App mit `npm run dev`.
+- Nutze Browser-DevTools fuer UI- und Netzwerk-Debugging.
+- Pruefe TypeScript- und ESLint-Hinweise vor dem Commit.
 
-## Build & Deploy
+## Build und Deploy
 
 1. `npm run build`
 2. `npm run preview` zur lokalen Kontrolle
-3. `npm run deploy` (falls eingerichtet, z. B. mit `gh-pages`)
+3. `npm run deploy` (wenn `gh-pages` eingerichtet ist)
 
-Hinweis: Für reproduzierbare Builds `npm ci` verwenden.
+Hinweis: Fuer reproduzierbare Builds ist `npm ci` mit Lockfile sinnvoll.
 
-## Internationale Unterstützung (i18n)
+## Internationalisierung (i18n)
 
-Die App enthält Mehrsprachigkeit; Texte werden über die i18n-Integration geladen. Beim Hinzufügen neuer Texte bitte die Übersetzungsdateien aktualisieren.
+Die App unterstuetzt mehrere Sprachen. Bei neuen UI-Texten bitte die i18n-Ressourcen entsprechend erweitern.
 
 ## Mitwirken
 
-- Issues melden für Fehler oder Featurevorschläge
-- PRs mit klarer Beschreibung, Tests/Schritten zur Überprüfung willkommen
-
-Bei Bedarf kann ich noch eine Schritt-für-Schritt-Anleitung für das Deployment (GitHub Pages) ergänzen oder die `package.json`-Scripts überprüfen.
+- Issues fuer Fehler oder Feature-Ideen erstellen
+- PRs mit klarer Beschreibung und Test-/Pruefschritten einreichen

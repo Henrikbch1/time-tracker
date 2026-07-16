@@ -372,3 +372,47 @@ export function readWorkdays(): WorkdaysMap {
 export function writeWorkdays(map: WorkdaysMap) {
   Cookies.set(WORKDAYS_COOKIE, JSON.stringify(map), COOKIE_WRITE_OPTIONS);
 }
+
+export interface UserProfile {
+  name: string;
+  color: string;
+}
+
+const PROFILE_COOKIE = "hookie.profile";
+const FAVORITES_COOKIE = "hookie.favorites";
+
+function isUserProfile(value: unknown): value is UserProfile {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<UserProfile>;
+  return (
+    typeof candidate.name === "string" && typeof candidate.color === "string"
+  );
+}
+
+export function readProfile(): UserProfile | null {
+  const parsed = safeParseJson<unknown>(Cookies.get(PROFILE_COOKIE));
+  if (isUserProfile(parsed)) return parsed;
+  return null;
+}
+
+export function writeProfile(profile: UserProfile) {
+  Cookies.set(PROFILE_COOKIE, JSON.stringify(profile), COOKIE_WRITE_OPTIONS);
+}
+
+export function readFavorites(): string[] {
+  const parsed = safeParseJson<unknown>(Cookies.get(FAVORITES_COOKIE));
+  if (!Array.isArray(parsed)) return [];
+  return parsed.filter((item): item is string => typeof item === "string");
+}
+
+export function writeFavorites(favorites: string[]) {
+  if (favorites.length === 0) {
+    Cookies.remove(FAVORITES_COOKIE, COOKIE_REMOVE_OPTIONS);
+    return;
+  }
+  Cookies.set(
+    FAVORITES_COOKIE,
+    JSON.stringify(favorites),
+    COOKIE_WRITE_OPTIONS,
+  );
+}
