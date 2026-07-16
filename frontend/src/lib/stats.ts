@@ -1,6 +1,6 @@
 import type { HistoryEntry, Tag, RoundingConfig } from "./cookies";
 import { formatLocalYMD } from "./date";
-import { roundDurationMs } from "./time";
+import { getRoundedDurationMs, roundDurationMs } from "./time";
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
@@ -53,11 +53,18 @@ export function dailyTrend(
   history: HistoryEntry[],
   now: number,
   days = 14,
+  roundingConfig?: RoundingConfig,
 ): TrendPoint[] {
   const perDay: Record<string, number> = {};
   for (const entry of history) {
     const key = formatLocalYMD(entry.endTimestamp);
-    perDay[key] = (perDay[key] ?? 0) + entry.durationMs;
+    perDay[key] =
+      (perDay[key] ?? 0) +
+      getRoundedDurationMs(
+        entry.durationMs,
+        roundingConfig?.enabled ?? false,
+        roundingConfig?.intervalMinutes ?? 0,
+      );
   }
 
   const today = startOfDay(now);

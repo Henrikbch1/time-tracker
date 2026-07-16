@@ -33,7 +33,7 @@ export default function ReportsPage() {
     exportConfig,
   } = useTracker();
 
-  const trend = dailyTrend(history, now, 14);
+  const trend = dailyTrend(history, now, 14, roundingConfig);
 
   const taskSeries = toCategorySeries(
     totalsByTask,

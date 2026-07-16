@@ -1,6 +1,10 @@
 import { useLanguage } from "../context/LanguageContext";
 import { useTracker } from "../context/TrackerContext";
-import { formatDateTime, formatDuration } from "../lib/time";
+import {
+  formatDateTime,
+  formatDuration,
+  getRoundedDurationMs,
+} from "../lib/time";
 import t from "../i18n";
 import { PauseIcon, PlayIcon, StarIcon, StopIcon } from "./icons";
 
@@ -20,6 +24,7 @@ export function TimerWidget({
     activeSession,
     pausedSessions,
     elapsedMs,
+    roundingConfig,
     tags,
     selectedTagId,
     setSelectedTagId,
@@ -92,7 +97,13 @@ export function TimerWidget({
             className="mono-face text-3xl font-semibold tabular-nums sm:text-4xl"
             style={{ color: "var(--text)" }}
           >
-            {formatDuration(elapsedMs)}
+            {formatDuration(
+              getRoundedDurationMs(
+                elapsedMs,
+                roundingConfig.enabled,
+                roundingConfig.intervalMinutes,
+              ),
+            )}
           </span>
           {isRunning ? (
             <div className="flex gap-2">
@@ -234,7 +245,13 @@ export function TimerWidget({
                     className="mono-face text-xs"
                     style={{ color: "var(--text-subtle)" }}
                   >
-                    {formatDuration(session.accumulatedMs)}
+                    {formatDuration(
+                      getRoundedDurationMs(
+                        session.accumulatedMs,
+                        roundingConfig.enabled,
+                        roundingConfig.intervalMinutes,
+                      ),
+                    )}
                   </p>
                 </div>
                 <div className="flex gap-2">

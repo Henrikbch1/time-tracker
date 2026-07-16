@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { type HistoryEntry, type Tag, type Language } from "../lib/cookies";
 import { exportHistory, type ExportFormat } from "../lib/export";
+import { useTracker } from "../context/TrackerContext";
 import { DownloadIcon } from "./icons";
 import t from "../i18n";
 
@@ -12,10 +13,11 @@ interface ExportMenuProps {
 
 export function ExportMenu({ history, tags, language }: ExportMenuProps) {
   const [open, setOpen] = useState(false);
+  const { roundingConfig } = useTracker();
 
   const run = (format: ExportFormat) => {
     setOpen(false);
-    exportHistory(format, history, tags, language);
+    exportHistory(format, history, tags, language, roundingConfig);
   };
 
   return (

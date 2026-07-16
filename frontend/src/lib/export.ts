@@ -5,7 +5,12 @@ import {
   type ExportConfig,
   type RoundingConfig,
 } from "./cookies";
-import { formatDateTime, formatDuration, formatDurationFlexible } from "./time";
+import {
+  formatDateTime,
+  formatDuration,
+  formatDurationFlexible,
+  getRoundedDurationMs,
+} from "./time";
 import { getGroupedTodayTasks } from "./stats";
 import t from "../i18n";
 
@@ -38,6 +43,7 @@ function buildRows(
   history: HistoryEntry[],
   tags: Tag[],
   language: Language,
+  roundingConfig?: RoundingConfig,
 ): string[][] {
   return history.map((entry, index) => [
     String(index + 1),
@@ -45,7 +51,13 @@ function buildRows(
     resolveTagName(entry, tags, language),
     formatDateTime(entry.startTimestamp),
     formatDateTime(entry.endTimestamp),
-    formatDuration(entry.durationMs),
+    formatDuration(
+      getRoundedDurationMs(
+        entry.durationMs,
+        roundingConfig?.enabled ?? false,
+        roundingConfig?.intervalMinutes ?? 0,
+      ),
+    ),
   ]);
 }
 
@@ -75,8 +87,12 @@ export function exportCsv(
   history: HistoryEntry[],
   tags: Tag[] = [],
   language: Language = "en",
+  roundingConfig?: RoundingConfig,
 ) {
-  const rows = [buildHeader(language), ...buildRows(history, tags, language)];
+  const rows = [
+    buildHeader(language),
+    ...buildRows(history, tags, language, roundingConfig),
+  ];
   const csv = rows.map((row) => row.map(escapeCsvCell).join(",")).join("\r\n");
   // Prepend BOM so spreadsheet apps detect UTF-8 correctly.
   const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" });
@@ -87,9 +103,13 @@ export async function exportXlsx(
   history: HistoryEntry[],
   tags: Tag[] = [],
   language: Language = "en",
+  roundingConfig?: RoundingConfig,
 ) {
   const XLSX = await import("xlsx");
-  const rows = [buildHeader(language), ...buildRows(history, tags, language)];
+  const rows = [
+    buildHeader(language),
+    ...buildRows(history, tags, language, roundingConfig),
+  ];
   const worksheet = XLSX.utils.aoa_to_sheet(rows);
   worksheet["!cols"] = [
     { wch: 5 },
@@ -120,9 +140,10 @@ export function exportPdf(
   history: HistoryEntry[],
   tags: Tag[] = [],
   language: Language = "en",
+  roundingConfig?: RoundingConfig,
 ) {
   const header = buildHeader(language);
-  const rows = buildRows(history, tags, language);
+  const rows = buildRows(history, tags, language, roundingConfig);
   const title = t("exportFileName", language);
 
   const headHtml = header
@@ -173,11 +194,14 @@ export function exportHistory(
   history: HistoryEntry[],
   tags: Tag[] = [],
   language: Language = "en",
+  roundingConfig?: RoundingConfig,
 ) {
   if (history.length === 0) return;
-  if (format === "csv") return exportCsv(history, tags, language);
-  if (format === "xlsx") return exportXlsx(history, tags, language);
-  return exportPdf(history, tags, language);
+  if (format === "csv")
+    return exportCsv(history, tags, language, roundingConfig);
+  if (format === "xlsx")
+    return exportXlsx(history, tags, language, roundingConfig);
+  return exportPdf(history, tags, language, roundingConfig);
 }
 
 // Backwards-compatible default export (used by TrackerContext.handleExport).
@@ -185,8 +209,9 @@ export function downloadHistory(
   history: HistoryEntry[],
   tags: Tag[] = [],
   language: Language = "en",
+  roundingConfig?: RoundingConfig,
 ) {
-  exportCsv(history, tags, language);
+  exportCsv(history, tags, language, roundingConfig);
 }
 
 /**

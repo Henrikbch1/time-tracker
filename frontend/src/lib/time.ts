@@ -57,6 +57,18 @@ export function roundDurationMs(
   return Math.ceil(Math.max(0, durationMs) / intervalMs) * intervalMs;
 }
 
+export function getRoundedDurationMs(
+  durationMs: number,
+  enabled: boolean,
+  intervalMinutes: number,
+): number {
+  if (!enabled) {
+    return Math.max(0, durationMs);
+  }
+
+  return roundDurationMs(durationMs, intervalMinutes);
+}
+
 /**
  * Format duration in flexible formats.
  * @param durationMs - Duration in milliseconds
