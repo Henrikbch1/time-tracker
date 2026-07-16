@@ -15,6 +15,8 @@ import {
   readTags,
   readDailyGoal,
   readWorkdays,
+  readFavorites,
+  writeFavorites,
   type ActiveSession,
   type HistoryEntry,
   type Tag,
@@ -28,6 +30,7 @@ import { useInterval } from "../hooks/useInterval";
 import { downloadHistory } from "../lib/export";
 import { getElapsedDuration } from "../lib/time";
 import { formatLocalYMD } from "../lib/date";
+import { startOfMonth, startOfWeek, sumDurationInRange } from "../lib/stats";
 import t from "../i18n";
 
 type WorkdaysMap = Record<
@@ -55,10 +58,16 @@ interface TrackerContextValue {
   totalsByTag: Record<string, number>;
   totalsByTask: Record<string, number>;
   todayTrackedMs: number;
+  weekTrackedMs: number;
+  monthTrackedMs: number;
   totalsByTaskToday: Record<string, number>;
   completedToday: number;
   latestEntry: HistoryEntry | null;
+  favorites: string[];
+  toggleFavorite: (taskName: string) => void;
+  isFavorite: (taskName: string) => boolean;
   handleStart: () => void;
+  handleQuickStart: (name: string, tagId?: string) => void;
   handlePause: () => void;
   handleResumePaused: (sessionId: string) => void;
   handleStopPaused: (sessionId: string) => void;
@@ -96,6 +105,7 @@ function getInitialState() {
     pausedSessions: restoredPaused,
     history,
     tags: readTags() ?? [],
+    favorites: readFavorites(),
     dailyGoalHours: readDailyGoal() ?? 8,
     workdays: readWorkdays(),
     now: Date.now(),
@@ -142,6 +152,7 @@ export function TrackerProvider({
   );
   const [history, setHistory] = useState<HistoryEntry[]>(initial.history);
   const [tags, setTags] = useState<Tag[]>(initial.tags);
+  const [favorites, setFavorites] = useState<string[]>(initial.favorites);
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
   const [now, setNow] = useState(initial.now);
   const [dailyGoalHours, setDailyGoalHours] = useState(initial.dailyGoalHours);
@@ -165,6 +176,9 @@ export function TrackerProvider({
   useEffect(() => {
     writeHistory(history);
   }, [history]);
+  useEffect(() => {
+    writeFavorites(favorites);
+  }, [favorites]);
 
   useInterval(
     () => {
@@ -238,6 +252,39 @@ export function TrackerProvider({
   );
   const latestEntry = useMemo(() => history[0] ?? null, [history]);
 
+  const weekTrackedMs = useMemo(() => {
+    const weekStart = startOfWeek(now);
+    let total = sumDurationInRange(history, weekStart, now + 1);
+    if (activeSession && activeSession.createdTimestamp >= weekStart) {
+      total += elapsedMs;
+    }
+    return total;
+  }, [history, activeSession, elapsedMs, now]);
+
+  const monthTrackedMs = useMemo(() => {
+    const monthStart = startOfMonth(now);
+    let total = sumDurationInRange(history, monthStart, now + 1);
+    if (activeSession && activeSession.createdTimestamp >= monthStart) {
+      total += elapsedMs;
+    }
+    return total;
+  }, [history, activeSession, elapsedMs, now]);
+
+  const toggleFavorite = useCallback((taskName: string) => {
+    const normalized = taskName.trim();
+    if (!normalized) return;
+    setFavorites((prev) =>
+      prev.includes(normalized)
+        ? prev.filter((name) => name !== normalized)
+        : [normalized, ...prev].slice(0, 12),
+    );
+  }, []);
+
+  const isFavorite = useCallback(
+    (taskName: string) => favorites.includes(taskName.trim()),
+    [favorites],
+  );
+
   const handleStart = useCallback(() => {
     const normalized = taskName.trim();
     if (!normalized) return;
@@ -262,6 +309,32 @@ export function TrackerProvider({
       tagId: selectedTagId ?? undefined,
     });
   }, [taskName, selectedTagId, activeSession]);
+
+  const handleQuickStart = useCallback((name: string, tagId?: string) => {
+    const normalized = name.trim();
+    if (!normalized) return;
+    const startedAt = Date.now();
+
+    setActiveSession((current) => {
+      if (current) {
+        setPausedSessions((prev) => [
+          toPausedSession(current, startedAt),
+          ...prev,
+        ]);
+      }
+      return {
+        sessionId: `${startedAt}-${Math.random().toString(36).slice(2, 8)}`,
+        taskName: normalized,
+        createdTimestamp: startedAt,
+        accumulatedMs: 0,
+        isPaused: false,
+        segmentStartTimestamp: startedAt,
+        tagId: tagId ?? undefined,
+      };
+    });
+    setTaskName("");
+    setNow(startedAt);
+  }, []);
 
   const handlePause = useCallback(() => {
     if (!activeSession) return;
@@ -406,10 +479,16 @@ export function TrackerProvider({
       totalsByTag,
       totalsByTask,
       todayTrackedMs,
+      weekTrackedMs,
+      monthTrackedMs,
       totalsByTaskToday,
       completedToday,
       latestEntry,
+      favorites,
+      toggleFavorite,
+      isFavorite,
       handleStart,
+      handleQuickStart,
       handlePause,
       handleResumePaused,
       handleStopPaused,
@@ -433,10 +512,16 @@ export function TrackerProvider({
       totalsByTag,
       totalsByTask,
       todayTrackedMs,
+      weekTrackedMs,
+      monthTrackedMs,
       totalsByTaskToday,
       completedToday,
       latestEntry,
+      favorites,
+      toggleFavorite,
+      isFavorite,
       handleStart,
+      handleQuickStart,
       handlePause,
       handleResumePaused,
       handleStopPaused,
@@ -452,6 +537,7 @@ export function TrackerProvider({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTracker() {
   const ctx = useContext(TrackerContext);
   if (!ctx) throw new Error("useTracker must be used within TrackerProvider");

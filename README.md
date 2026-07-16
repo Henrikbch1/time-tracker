@@ -1,32 +1,55 @@
 # Time Tracker
 
-[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-0.4.4-lightgrey.svg)](frontend/package.json)
+Live-Demo: [Hookie | TimeTracker](https://henrikbch1.github.io/time-tracker/)
 
-Eine leichte, im Browser laufende Anwendung zur Erfassung und Auswertung von Arbeitszeit. Die Benutzeroberfläche ist als Single-Page-App mit React + TypeScript erstellt und liegt im Ordner `frontend/`.
+[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.4.4-lightgrey.svg)](frontend/package.json)
 
-Inhaltsverzeichnis
+Eine leichte, im Browser laufende Anwendung zur Erfassung und Auswertung von Arbeitszeit. Die Benutzeroberflaeche ist als Single-Page-App mit React + TypeScript umgesetzt und liegt im Ordner `frontend/`.
 
-- [Projektüberblick](#projektüberblick)
-- [Features](#features)
+## Inhaltsverzeichnis
+
+- [Projektueberblick](#projektueberblick)
+- [So funktioniert das Time Tracking](#so-funktioniert-das-time-tracking)
+- [Feature-Einblick](#feature-einblick)
 - [Technologien](#technologien)
 - [Schnellstart](#schnellstart)
-- [Frontend](#frontend)
+- [Deploy (GitHub Pages)](#deploy-github-pages)
 - [Projektstruktur](#projektstruktur)
+- [Frontend-Dokumentation](#frontend-dokumentation)
 - [Mitmachen](#mitmachen)
 - [Lizenz](#lizenz)
 
-## Projektüberblick
+## Projektueberblick
 
-`Time Tracker` ermöglicht das einfache Erfassen von Arbeitszeiten pro Aufgabe, das Anzeigen von Tages- und Wochenübersichten sowie einfache Auswertungen (z. B. Zeit pro Aufgabe). Die App ist lokal ausführbar, offline-fähig und speichert Einstellungen im Browser.
+`Time Tracker` ermoeglicht das Erfassen von Arbeitszeit pro Aufgabe, die Anzeige von Tages- und Wochenwerten sowie einfache Auswertungen nach Aufgaben und Zeitraeumen. Die App ist lokal nutzbar, offline-faehig und speichert Daten und Einstellungen im Browser.
 
-- ## Features
+## So funktioniert das Time Tracking
 
-- Erfassen von Start/Stop-Zeiten
-- Manuelle Zeiteinträge: aktuell nicht über ein Formular möglich (nur automatische Tracking- bzw. Bearbeitungsfunktionen)
-- Übersicht: Zeit pro Tag, Woche und pro Aufgabe (Kreis-/Balkendiagramme)
-- Einstellbare Tagesziele und Theme-Support (hell/dunkel)
-- Tag-Management und Export: aktuell wird ein einfacher `.txt`-Export verwendet
-- Mehrsprachigkeit (i18n)
+Der typische Workflow ist bewusst schlank gehalten:
+
+1. Aufgabe benennen (optional mit Tag).
+2. Tracking mit `Start` beginnen.
+3. Timer laeuft live im Dashboard.
+4. Tracking mit `Stop` beenden.
+5. Session wird automatisch in der Historie gespeichert und in KPIs/Charts beruecksichtigt.
+
+Wichtige Regeln im aktuellen Stand:
+
+- Es kann immer nur eine Session gleichzeitig aktiv sein.
+- Es gibt aktuell keine Pause/Resume-Funktion.
+- Manuelle Zeiteingabe per eigenem Formular ist derzeit nicht vorhanden.
+
+## Feature-Einblick
+
+- Start/Stop-Tracking fuer Aufgaben.
+- Tages- und Wochenauswertung mit KPI-Karten.
+- Visualisierungen (z. B. Kreis- und Balkendiagramme) fuer Zeitverteilungen.
+- Historie mit editierbaren Eintraegen.
+- Tagesziel, Workday-Einstellungen sowie Theme-Umschaltung.
+- Tag-Management zur Strukturierung von Aufgaben.
+- Export der Daten (aktuell als einfacher `.txt`-Export).
+- Mehrsprachigkeit (i18n).
 
 ## Technologien
 
@@ -36,57 +59,54 @@ Inhaltsverzeichnis
 
 ## Schnellstart
 
-1. Ins Frontend-Verzeichnis wechseln
+1. Ins Frontend-Verzeichnis wechseln und Abhaengigkeiten installieren:
 
 ```bash
 cd frontend
 npm install
 ```
 
-2. Entwicklung starten
+2. Entwicklung starten:
 
 ```bash
 npm run dev
-# Öffne die angezeigte lokale URL (z. B. http://localhost:5173)
+# Oeffne die angezeigte URL (z. B. http://localhost:5173)
 ```
 
-3. Produktion bauen
+3. Produktion lokal pruefen:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-4. Deploy (GitHub Pages)
+## Deploy (GitHub Pages)
 
-Die App kann mit dem vorhandenen `deploy`-Script per `gh-pages` nach GitHub Pages deployt werden. Ablauf:
+Die App kann mit dem vorhandenen `deploy`-Script per `gh-pages` nach GitHub Pages veroeffentlicht werden:
 
 ```bash
-npm run build   # erstellt das Production-Bundle in `dist`
-npm run deploy  # nutzt `gh-pages -d dist`, push zu gh-pages-Branch
+cd frontend
+npm run build
+npm run deploy
 ```
 
-Stelle sicher, dass das Remote-Repository korrekt konfiguriert ist und der `homepage`-Eintrag in `frontend/package.json` auf die GitHub Pages URL zeigt.
-
-## Frontend
-
-Die Frontend-spezifischen Details und Anweisungen stehen in der Frontend-README: [frontend/README.md](frontend/README.md).
+Stelle sicher, dass das Remote-Repository korrekt konfiguriert ist und `homepage` in `frontend/package.json` auf die GitHub-Pages-URL zeigt.
 
 ## Projektstruktur
 
-- `frontend/` — React-Anwendung (Quellcode, Assets, Scripts)
-- `LICENSE` — Lizenzdatei (GPL-3.0)
-- `README.md` — Diese Datei
+- `frontend/` - React-Anwendung (Quellcode, Assets, Scripts)
+- `LICENSE` - Lizenzdatei (GPL-3.0)
+- `README.md` - Diese Datei
+
+## Frontend-Dokumentation
+
+Frontend-spezifische Details findest du in [frontend/README.md](frontend/README.md).
 
 ## Mitmachen
 
-- Öffne Issues für Fehler oder Featurewünsche
-- Fork → Branch → PR, bitte mit Beschreibung und Reproduktionsschritten
+- Issues fuer Fehler oder Feature-Wuensche erstellen
+- Fork -> Branch -> PR, bitte mit Beschreibung und Reproduktionsschritten
 
 ## Lizenz
 
 Dieses Projekt steht unter der [GPL-3.0](LICENSE).
-
----
-
-Wenn du möchtest, kann ich jetzt noch die `frontend/README.md` ausführlicher kommentieren oder die Anleitung für das Deployment anpassen.
