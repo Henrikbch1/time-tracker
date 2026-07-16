@@ -17,9 +17,15 @@ import {
   readWorkdays,
   readFavorites,
   writeFavorites,
+  readRoundingConfig,
+  writeRoundingConfig,
+  readExportConfig,
+  writeExportConfig,
   type ActiveSession,
   type HistoryEntry,
   type Tag,
+  type RoundingConfig,
+  type ExportConfig,
   writeActiveSession,
   writeHistory,
   writePausedSessions,
@@ -53,6 +59,10 @@ interface TrackerContextValue {
   setDailyGoalHours: (n: number) => void;
   workdays: WorkdaysMap;
   setWorkdays: (m: WorkdaysMap) => void;
+  roundingConfig: RoundingConfig;
+  setRoundingConfig: (config: RoundingConfig) => void;
+  exportConfig: ExportConfig;
+  setExportConfig: (config: ExportConfig) => void;
   elapsedMs: number;
   totalTrackedMs: number;
   totalsByTag: Record<string, number>;
@@ -108,6 +118,8 @@ function getInitialState() {
     favorites: readFavorites(),
     dailyGoalHours: readDailyGoal() ?? 8,
     workdays: readWorkdays(),
+    roundingConfig: readRoundingConfig(),
+    exportConfig: readExportConfig(),
     now: Date.now(),
   };
 }
@@ -157,6 +169,12 @@ export function TrackerProvider({
   const [now, setNow] = useState(initial.now);
   const [dailyGoalHours, setDailyGoalHours] = useState(initial.dailyGoalHours);
   const [workdays, setWorkdays] = useState<WorkdaysMap>(initial.workdays);
+  const [roundingConfig, setRoundingConfig] = useState<RoundingConfig>(
+    initial.roundingConfig,
+  );
+  const [exportConfig, setExportConfig] = useState<ExportConfig>(
+    initial.exportConfig,
+  );
 
   useEffect(() => {
     if (activeSession) {
@@ -179,6 +197,14 @@ export function TrackerProvider({
   useEffect(() => {
     writeFavorites(favorites);
   }, [favorites]);
+
+  useEffect(() => {
+    writeRoundingConfig(roundingConfig);
+  }, [roundingConfig]);
+
+  useEffect(() => {
+    writeExportConfig(exportConfig);
+  }, [exportConfig]);
 
   useInterval(
     () => {
@@ -474,6 +500,10 @@ export function TrackerProvider({
       setDailyGoalHours,
       workdays,
       setWorkdays,
+      roundingConfig,
+      setRoundingConfig,
+      exportConfig,
+      setExportConfig,
       elapsedMs,
       totalTrackedMs,
       totalsByTag,
@@ -507,6 +537,8 @@ export function TrackerProvider({
       now,
       dailyGoalHours,
       workdays,
+      roundingConfig,
+      exportConfig,
       elapsedMs,
       totalTrackedMs,
       totalsByTag,

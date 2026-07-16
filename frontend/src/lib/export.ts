@@ -1,5 +1,12 @@
-import { type HistoryEntry, type Tag, type Language } from "./cookies";
-import { formatDateTime, formatDuration } from "./time";
+import {
+  type HistoryEntry,
+  type Tag,
+  type Language,
+  type ExportConfig,
+  type RoundingConfig,
+} from "./cookies";
+import { formatDateTime, formatDuration, formatDurationFlexible } from "./time";
+import { getGroupedTodayTasks } from "./stats";
 import t from "../i18n";
 
 export type ExportFormat = "csv" | "xlsx" | "pdf";
@@ -180,4 +187,150 @@ export function downloadHistory(
   language: Language = "en",
 ) {
   exportCsv(history, tags, language);
+}
+
+/**
+ * Generate formatted text representation of today's tasks with rounding applied.
+ * @param history - History entries
+ * @param now - Current timestamp
+ * @param tags - Available tags
+ * @param roundingConfig - Rounding configuration
+ * @param exportConfig - Export format configuration
+ * @param language - Language for formatting
+ * @returns Formatted text (HTML-safe)
+ */
+export function exportFormattedToday(
+  history: HistoryEntry[],
+  now: number,
+  tags: Tag[],
+  roundingConfig: RoundingConfig,
+  exportConfig: ExportConfig,
+  language: Language = "en",
+): string {
+  const grouped = getGroupedTodayTasks(history, now, roundingConfig);
+
+  if (grouped.length === 0) {
+    return t("noSessionsSaved", language);
+  }
+
+  if (exportConfig.format === "table") {
+    return exportFormattedAsTable(grouped, tags, exportConfig, language);
+  }
+
+  return exportFormattedAsTextBlock(grouped, tags, exportConfig, language);
+}
+
+function resolveTagNameForExport(
+  tagId: string | undefined,
+  tags: Tag[],
+  language: Language,
+): string {
+  if (!tagId) return "";
+  return (
+    tags.find((tag) => tag.id === tagId)?.name ?? t("deletedLabel", language)
+  );
+}
+
+function formatDurationForExport(
+  durationMs: number,
+  format: "HH:MM" | "H.H" | "minutes",
+): string {
+  return formatDurationFlexible(durationMs, format);
+}
+
+interface GroupedTask {
+  taskName: string;
+  tagId?: string;
+  totalDurationMs: number;
+  roundedDurationMs: number;
+  entries: HistoryEntry[];
+}
+
+function exportFormattedAsTextBlock(
+  grouped: GroupedTask[],
+  tags: Tag[],
+  exportConfig: ExportConfig,
+  language: Language,
+): string {
+  const lines: string[] = [];
+
+  for (const group of grouped) {
+    let line = "";
+
+    if (exportConfig.includeTaskName) {
+      line += group.taskName;
+    }
+
+    if (exportConfig.includeTag && group.tagId) {
+      const tagName = resolveTagNameForExport(group.tagId, tags, language);
+      if (line) line += " | ";
+      line += tagName;
+    }
+
+    const duration = formatDurationForExport(
+      group.roundedDurationMs,
+      exportConfig.timeFormat,
+    );
+    if (line) line += ": ";
+    line += duration;
+
+    lines.push(line);
+  }
+
+  return lines.join("\n");
+}
+
+function exportFormattedAsTable(
+  grouped: GroupedTask[],
+  tags: Tag[],
+  exportConfig: ExportConfig,
+  language: Language,
+): string {
+  const lines: string[] = [];
+  const parts: string[] = [];
+
+  if (exportConfig.includeTaskName) {
+    parts.push(t("exportColTask", language));
+  }
+  if (exportConfig.includeTag) {
+    parts.push(t("exportColTag", language));
+  }
+  parts.push(t("exportColDuration", language));
+
+  lines.push(parts.join("\t"));
+  lines.push("-".repeat(50));
+
+  for (const group of grouped) {
+    const rowParts: string[] = [];
+
+    if (exportConfig.includeTaskName) {
+      rowParts.push(group.taskName);
+    }
+    if (exportConfig.includeTag && group.tagId) {
+      const tagName = resolveTagNameForExport(group.tagId, tags, language);
+      rowParts.push(tagName);
+    }
+
+    const duration = formatDurationForExport(
+      group.roundedDurationMs,
+      exportConfig.timeFormat,
+    );
+    rowParts.push(duration);
+
+    lines.push(rowParts.join("\t"));
+  }
+
+  return lines.join("\n");
+}
+
+/**
+ * Calculate total duration for today with rounding applied.
+ */
+export function getTodayTotalDuration(
+  history: HistoryEntry[],
+  now: number,
+  roundingConfig: RoundingConfig,
+): number {
+  const grouped = getGroupedTodayTasks(history, now, roundingConfig);
+  return grouped.reduce((sum, group) => sum + group.roundedDurationMs, 0);
 }

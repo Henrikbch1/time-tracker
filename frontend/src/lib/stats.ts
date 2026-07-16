@@ -1,5 +1,6 @@
-import type { HistoryEntry, Tag } from "./cookies";
+import type { HistoryEntry, Tag, RoundingConfig } from "./cookies";
 import { formatLocalYMD } from "./date";
+import { roundDurationMs } from "./time";
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
@@ -84,6 +85,61 @@ export interface CategorySlice {
   ms: number;
   hours: number;
   color?: string;
+}
+export interface GroupedTask {
+  taskName: string;
+  tagId?: string;
+  totalDurationMs: number; // Original duration (sum of all entries for this task+tag today)
+  roundedDurationMs: number; // Rounded duration (if rounding enabled)
+  entries: HistoryEntry[];
+}
+/**
+ * Group today's history entries by taskName + tagId and optionally apply rounding.
+ * Prevents double-rounding: all segments for a task are summed first, then rounded once.
+ */
+export function getGroupedTodayTasks(
+  history: HistoryEntry[],
+  now: number,
+  roundingConfig: RoundingConfig,
+): GroupedTask[] {
+  const today = startOfDay(now);
+  const tomorrow = today + DAY_MS;
+
+  // Filter entries for today
+  const todayEntries = history.filter(
+    (entry) => entry.endTimestamp >= today && entry.endTimestamp < tomorrow,
+  );
+
+  // Group by taskName + tagId
+  const grouped: Record<string, GroupedTask> = {};
+
+  for (const entry of todayEntries) {
+    const key = `${entry.taskName}|${entry.tagId ?? ""}`;
+
+    if (!grouped[key]) {
+      grouped[key] = {
+        taskName: entry.taskName,
+        tagId: entry.tagId,
+        totalDurationMs: 0,
+        roundedDurationMs: 0,
+        entries: [],
+      };
+    }
+
+    grouped[key].totalDurationMs += entry.durationMs;
+    grouped[key].entries.push(entry);
+  }
+
+  // Apply rounding once per group (not per segment)
+  const result = Object.values(grouped).map((group) => ({
+    ...group,
+    roundedDurationMs: roundingConfig.enabled
+      ? roundDurationMs(group.totalDurationMs, roundingConfig.intervalMinutes)
+      : group.totalDurationMs,
+  }));
+
+  // Sort by task name for consistent ordering
+  return result.sort((a, b) => a.taskName.localeCompare(b.taskName));
 }
 
 /** Aggregate totals-by-key into a sorted, colored series (descending). */

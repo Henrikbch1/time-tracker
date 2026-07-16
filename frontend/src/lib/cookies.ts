@@ -38,13 +38,25 @@ const COOKIE_REMOVE_OPTIONS = {
 };
 
 const TAGS_COOKIE = "hookie.tags";
+const ROUNDING_CONFIG_COOKIE = "hookie.rounding-config";
+const EXPORT_CONFIG_COOKIE = "hookie.export-config";
 
 export interface Tag {
   id: string;
   name: string;
   color?: string;
 }
+export interface RoundingConfig {
+  enabled: boolean;
+  intervalMinutes: number; // 5, 10, 15, or custom value
+}
 
+export interface ExportConfig {
+  format: "textBlock" | "table"; // Export format
+  timeFormat: "HH:MM" | "H.H" | "minutes"; // Time display format
+  includeTaskName: boolean;
+  includeTag: boolean;
+}
 function safeParseJson<T>(value: string | undefined) {
   if (!value) {
     return null;
@@ -297,7 +309,78 @@ export function readTheme() {
 
   return theme;
 }
+function isRoundingConfig(value: unknown): value is RoundingConfig {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
 
+  const candidate = value as Partial<RoundingConfig>;
+  return (
+    typeof candidate.enabled === "boolean" &&
+    isFiniteNumber(candidate.intervalMinutes) &&
+    candidate.intervalMinutes > 0
+  );
+}
+
+export function readRoundingConfig(): RoundingConfig {
+  const parsed = safeParseJson<unknown>(Cookies.get(ROUNDING_CONFIG_COOKIE));
+
+  if (isRoundingConfig(parsed)) {
+    return parsed;
+  }
+
+  return {
+    enabled: false,
+    intervalMinutes: 5,
+  };
+}
+
+export function writeRoundingConfig(config: RoundingConfig) {
+  Cookies.set(
+    ROUNDING_CONFIG_COOKIE,
+    JSON.stringify(config),
+    COOKIE_WRITE_OPTIONS,
+  );
+}
+
+function isExportConfig(value: unknown): value is ExportConfig {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<ExportConfig>;
+  return (
+    (candidate.format === "textBlock" || candidate.format === "table") &&
+    (candidate.timeFormat === "HH:MM" ||
+      candidate.timeFormat === "H.H" ||
+      candidate.timeFormat === "minutes") &&
+    typeof candidate.includeTaskName === "boolean" &&
+    typeof candidate.includeTag === "boolean"
+  );
+}
+
+export function readExportConfig(): ExportConfig {
+  const parsed = safeParseJson<unknown>(Cookies.get(EXPORT_CONFIG_COOKIE));
+
+  if (isExportConfig(parsed)) {
+    return parsed;
+  }
+
+  return {
+    format: "textBlock",
+    timeFormat: "HH:MM",
+    includeTaskName: true,
+    includeTag: true,
+  };
+}
+
+export function writeExportConfig(config: ExportConfig) {
+  Cookies.set(
+    EXPORT_CONFIG_COOKIE,
+    JSON.stringify(config),
+    COOKIE_WRITE_OPTIONS,
+  );
+}
 export function writeTheme(theme: ThemeMode) {
   Cookies.set(THEME_COOKIE, theme, COOKIE_WRITE_OPTIONS);
 }
