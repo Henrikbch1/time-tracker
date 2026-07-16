@@ -5,7 +5,11 @@ import { useTracker } from "../context/TrackerContext";
 import KpiCard from "../components/KpiCard";
 import TimerWidget from "../components/TimerWidget";
 import { TrendChart } from "../components/Charts";
-import { formatDuration, formatDateTime, getRoundedDurationMs } from "../lib/time";
+import {
+  formatDuration,
+  formatDateTime,
+  getRoundedDurationMs,
+} from "../lib/time";
 import { dailyTrend } from "../lib/stats";
 import { ChartIcon, ClockIcon } from "../components/icons";
 import t from "../i18n";

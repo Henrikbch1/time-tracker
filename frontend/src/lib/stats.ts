@@ -48,6 +48,57 @@ export interface TrendPoint {
   hours: number;
 }
 
+export interface RoundedTaskDaySegment {
+  taskName: string;
+  tagId?: string;
+  durationMs: number;
+  dayKey: string;
+  dayTimestamp: number;
+}
+
+export interface RoundedTaskDayGroup {
+  taskName: string;
+  tagId?: string;
+  dayKey: string;
+  dayTimestamp: number;
+  totalDurationMs: number;
+  roundedDurationMs: number;
+}
+
+export function groupRoundedDurationsByTaskDay(
+  segments: RoundedTaskDaySegment[],
+  roundingConfig?: RoundingConfig,
+): RoundedTaskDayGroup[] {
+  const grouped: Record<string, RoundedTaskDayGroup> = {};
+
+  for (const segment of segments) {
+    const durationMs = Math.max(0, Math.floor(segment.durationMs));
+    const key = `${segment.dayKey}|${segment.taskName}|${segment.tagId ?? ""}`;
+
+    if (!grouped[key]) {
+      grouped[key] = {
+        taskName: segment.taskName,
+        tagId: segment.tagId,
+        dayKey: segment.dayKey,
+        dayTimestamp: segment.dayTimestamp,
+        totalDurationMs: 0,
+        roundedDurationMs: 0,
+      };
+    }
+
+    grouped[key].totalDurationMs += durationMs;
+  }
+
+  return Object.values(grouped).map((group) => ({
+    ...group,
+    roundedDurationMs: getRoundedDurationMs(
+      group.totalDurationMs,
+      roundingConfig?.enabled ?? false,
+      roundingConfig?.intervalMinutes ?? 0,
+    ),
+  }));
+}
+
 /** Tracked ms per day for the last `days` days (oldest → newest, ending today). */
 export function dailyTrend(
   history: HistoryEntry[],
@@ -56,15 +107,20 @@ export function dailyTrend(
   roundingConfig?: RoundingConfig,
 ): TrendPoint[] {
   const perDay: Record<string, number> = {};
-  for (const entry of history) {
-    const key = formatLocalYMD(entry.endTimestamp);
-    perDay[key] =
-      (perDay[key] ?? 0) +
-      getRoundedDurationMs(
-        entry.durationMs,
-        roundingConfig?.enabled ?? false,
-        roundingConfig?.intervalMinutes ?? 0,
-      );
+  const grouped = groupRoundedDurationsByTaskDay(
+    history.map((entry) => ({
+      taskName: entry.taskName,
+      tagId: entry.tagId,
+      durationMs: entry.durationMs,
+      dayKey: formatLocalYMD(entry.endTimestamp),
+      dayTimestamp: startOfDay(entry.endTimestamp),
+    })),
+    roundingConfig,
+  );
+
+  for (const group of grouped) {
+    perDay[group.dayKey] =
+      (perDay[group.dayKey] ?? 0) + group.roundedDurationMs;
   }
 
   const today = startOfDay(now);
