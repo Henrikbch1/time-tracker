@@ -3,7 +3,7 @@
 Live-Demo: [Hookie | TimeTracker](https://henrikbch1.github.io/time-tracker/)
 
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.4.4-lightgrey.svg)](frontend/package.json)
+[![Version](https://img.shields.io/badge/version-0.5.0-lightgrey.svg)](frontend/package.json)
 
 Eine leichte, im Browser laufende Anwendung zur Erfassung und Auswertung von Arbeitszeit. Die Benutzeroberflaeche ist als Single-Page-App mit React + TypeScript umgesetzt und liegt im Ordner `frontend/`.
 
@@ -37,19 +37,19 @@ Der typische Workflow ist bewusst schlank gehalten:
 Wichtige Regeln im aktuellen Stand:
 
 - Es kann immer nur eine Session gleichzeitig aktiv sein.
-- Es gibt aktuell keine Pause/Resume-Funktion.
-- Manuelle Zeiteingabe per eigenem Formular ist derzeit nicht vorhanden.
+- Aktive Sessions koennen pausiert, spaeter fortgesetzt oder direkt abgeschlossen werden.
+- Historieneintraege lassen sich nachtraeglich bearbeiten, eine separate manuelle Neueingabe gibt es aber nicht.
 
 ## Feature-Einblick
 
-- Start/Stop-Tracking fuer Aufgaben.
-- Tages- und Wochenauswertung mit KPI-Karten.
-- Visualisierungen (z. B. Kreis- und Balkendiagramme) fuer Zeitverteilungen.
-- Historie mit editierbaren Eintraegen.
-- Tagesziel, Workday-Einstellungen sowie Theme-Umschaltung.
-- Tag-Management zur Strukturierung von Aufgaben.
-- Export der Daten (aktuell als einfacher `.txt`-Export).
-- Mehrsprachigkeit (i18n).
+- Task-Tracking mit Start, Pause, Resume und Stop inklusive optionaler Tags.
+- Favoriten und Quick-Start fuer wiederkehrende Aufgaben.
+- Dashboard mit Live-Timer sowie KPI-Karten fuer Tag, Woche und Monat.
+- Reports mit Trend-, Aufgaben- und Tag-Auswertungen.
+- Historie mit Suche, Filtern, Sortierung und editierbaren Eintraegen.
+- Einstellungen fuer Profil, Tagesziel, Workdays, Rundung, Theme und Sprache.
+- Export als CSV, Excel, PDF sowie kompakter Tagesexport zum Kopieren.
+- Lokale Speicherung im Browser inklusive Wiederherstellung laufender oder pausierter Sessions.
 
 ## Technologien
 

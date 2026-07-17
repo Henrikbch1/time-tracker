@@ -19,14 +19,14 @@ Live-Demo: [Hookie | TimeTracker](https://henrikbch1.github.io/time-tracker/)
 
 ## Kurzueberblick
 
-- Version: siehe `package.json`
+- Version: `0.5.0`
 - Entrypoint: `src/main.tsx`
 - Styling: Tailwind CSS
 
 Aktueller Stand:
 
-- Export ist aktuell als einfacher `.txt`-Export umgesetzt.
-- Eine dedizierte manuelle Zeiteingabe per Formular ist derzeit nicht vorhanden.
+- Export ist als CSV-, Excel- und PDF-Export umgesetzt; zusaetzlich gibt es einen kompakten Tagesexport zum Kopieren.
+- Eine dedizierte manuelle Neueingabe gibt es nicht, bestehende Historieneintraege lassen sich aber nachtraeglich bearbeiten.
 
 ## Tracking-Workflow
 
@@ -39,16 +39,17 @@ Aktueller Stand:
 Hinweise:
 
 - Es ist immer nur eine aktive Session moeglich.
-- Pause/Resume ist aktuell nicht enthalten.
+- Aktive Sessions koennen pausiert, fortgesetzt oder direkt abgeschlossen werden.
 
 ## Feature-Einblick
 
-- Dashboard mit KPI-Karten fuer Tages-/Wochenwerte.
-- Reports mit grafischen Auswertungen (z. B. Balken/Kreis).
-- Historie mit Bearbeitungsmoeglichkeiten.
-- Tag-Management fuer Aufgaben.
-- Theme-Umschaltung und Spracheinstellungen.
-- Datenexport (aktuell `.txt`).
+- Timer-Widget mit Start, Pause, Resume und Stop fuer Aufgaben samt optionalen Tags.
+- Favoriten und Quick-Start fuer haeufige Aufgaben.
+- Dashboard mit Live-Timer, KPI-Karten und Wochen-Trend.
+- Reports mit Trend-, Aufgaben- und Tag-Charts.
+- Historie mit Suche, Tag-Filter, Sortierung und Bearbeitung bestehender Eintraege.
+- Einstellungen fuer Profil, Tags, Tagesziele, Workdays, Rundung, Exportoptionen, Theme und Sprache.
+- Export als CSV, Excel, PDF sowie kompakter Tagesexport zum Kopieren.
 
 ## Schnellstart
 
