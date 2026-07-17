@@ -1,23 +1,26 @@
 import { useState, type FormEvent } from "react";
 import { type HistoryEntry, type Tag, type Language } from "../lib/cookies";
 import {
-  formatDateTime,
   formatDuration,
   formatShortDate,
   formatTime,
+  getRoundedDurationMs,
 } from "../lib/time";
+import { useTracker } from "../context/TrackerContext";
+import { ExportMenu } from "./ExportMenu";
 import t from "../i18n";
 
 interface HistoryPanelProps {
   readonly history: HistoryEntry[];
-  readonly totalTrackedMs: number;
+  readonly allHistory?: HistoryEntry[];
   readonly tags?: Tag[];
-  readonly onExport: () => void;
   readonly onUpdateEntry: (
     entryId: string,
     payload: { startTimestamp: number; durationMs: number },
   ) => void;
   readonly language: Language;
+  readonly title?: string;
+  readonly subtitle?: string;
 }
 
 function toDateTimeLocalValue(timestamp: number) {
@@ -36,18 +39,14 @@ function TagBadge({ tagId, tags, language }: TagBadgeProps) {
   const tag = tags.find((tg) => tg.id === tagId);
   return (
     <span
-      className="ml-2 inline-flex items-center gap-2 rounded px-2 py-1 text-xs font-medium"
-      style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+      className="badge"
+      style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
     >
       <span
-        style={{
-          width: 10,
-          height: 10,
-          background: tag?.color ?? "transparent",
-        }}
-        className="inline-block rounded-full"
+        style={{ background: tag?.color ?? "transparent" }}
+        className="inline-block h-2.5 w-2.5 rounded-full"
       />
-      <span className="truncate max-w-[8rem] block">
+      <span className="max-w-[8rem] truncate">
         {tag?.name ?? t("deletedLabel", language)}
       </span>
     </span>
@@ -56,21 +55,27 @@ function TagBadge({ tagId, tags, language }: TagBadgeProps) {
 
 export function HistoryPanel({
   history,
-  totalTrackedMs,
+  allHistory,
   tags = [],
-  onExport,
   onUpdateEntry,
   language,
+  title,
+  subtitle,
 }: HistoryPanelProps) {
+  const { roundingConfig } = useTracker();
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [editStartInput, setEditStartInput] = useState("");
   const [editDurationInput, setEditDurationInput] = useState("");
   const [editError, setEditError] = useState<string | null>(null);
 
+  const exportSource = allHistory ?? history;
+
   const handleStartEdit = (entry: HistoryEntry) => {
     setEditingEntryId(entry.id);
     setEditStartInput(toDateTimeLocalValue(entry.startTimestamp));
-    setEditDurationInput(String(Math.max(1, Math.round(entry.durationMs / 60_000))));
+    setEditDurationInput(
+      String(Math.max(1, Math.round(entry.durationMs / 60_000))),
+    );
     setEditError(null);
   };
 
@@ -81,7 +86,10 @@ export function HistoryPanel({
     setEditError(null);
   };
 
-  const handleSaveEdit = (event: FormEvent<HTMLFormElement>, entryId: string) => {
+  const handleSaveEdit = (
+    event: FormEvent<HTMLFormElement>,
+    entryId: string,
+  ) => {
     event.preventDefault();
 
     const parsedStart = new Date(editStartInput).getTime();
@@ -104,118 +112,148 @@ export function HistoryPanel({
   };
 
   return (
-    <section className="surface mt-6 px-6 py-6 sm:px-8 sm:py-8">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <section className="surface p-5 sm:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="eyebrow">{t("taskHistory", language)}</p>
-          <h2 className="display-face mt-3 text-3xl font-semibold tracking-[-0.06em] text-slate-950 dark:text-white">
-            {t("exportableCompact", language)}
-          </h2>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300">
-            {t("completedSessionsParagraph", language)}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="surface-muted px-4 py-3 text-left">
-            <p className="eyebrow">{t("storedTotal", language)}</p>
-            <p className="mono-face mt-2 text-lg font-medium text-slate-950 dark:text-white">
-              {formatDuration(totalTrackedMs)}
+          <p className="eyebrow">{title ?? t("taskHistory", language)}</p>
+          {subtitle ? (
+            <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+              {subtitle}
             </p>
-          </div>
-          <button
-            type="button"
-            onClick={onExport}
-            disabled={history.length === 0}
-            className="action-button disabled:cursor-not-allowed disabled:opacity-55"
-          >
-            {t("exportHistory", language)}
-          </button>
+          ) : null}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="chip">
+            {history.length} {t("entriesLabel", language)}
+          </span>
+          <ExportMenu history={exportSource} tags={tags} language={language} />
         </div>
       </div>
 
       {history.length === 0 ? (
-        <div className="surface-muted mt-8 flex min-h-56 items-center justify-center px-6 py-10 text-center">
-          <div className="max-w-md">
-            <p className="display-face text-2xl font-semibold text-slate-950 dark:text-white">
-              {t("noSessionsSaved", language)}
-            </p>
-            <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
-              {t("finishATaskParagraph", language)}
-            </p>
-          </div>
+        <div
+          className="mt-6 flex min-h-40 flex-col items-center justify-center rounded-xl border border-dashed px-6 py-10 text-center"
+          style={{ borderColor: "var(--border-strong)" }}
+        >
+          <p
+            className="text-base font-semibold"
+            style={{ color: "var(--text)" }}
+          >
+            {t("noEntriesMatch", language)}
+          </p>
+          <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
+            {t("finishATaskParagraph", language)}
+          </p>
         </div>
       ) : (
-        <ol className="mt-8 grid gap-4">
+        <ol className="mt-5 grid gap-2.5">
           {history.map((entry) => (
             <li
               key={entry.id}
-              className="surface-muted grid gap-4 px-5 py-5 lg:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,0.8fr))] lg:items-center"
+              className="rounded-xl border p-4"
+              style={{
+                borderColor: "var(--border)",
+                background: "var(--surface-2)",
+              }}
             >
-              <div>
-                <p className="display-face text-xl font-semibold text-slate-950 dark:text-white flex items-center gap-3">
-                  <span className="min-w-0 truncate">{entry.taskName}</span>
-                  {entry.tagId ? (
-                    <TagBadge tagId={entry.tagId} tags={tags} language={language} />
-                  ) : null}
-                </p>
-                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                  {t("finishedAt", language)}{" "}
-                  {formatDateTime(entry.endTimestamp)}
-                </p>
-              </div>
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,0.7fr))_auto] lg:items-center">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="truncate text-sm font-semibold"
+                      style={{ color: "var(--text)" }}
+                    >
+                      {entry.taskName}
+                    </span>
+                    {entry.tagId ? (
+                      <TagBadge
+                        tagId={entry.tagId}
+                        tags={tags}
+                        language={language}
+                      />
+                    ) : null}
+                  </div>
+                  <span
+                    className="badge mt-1.5"
+                    style={{
+                      background: "var(--success-soft)",
+                      color: "var(--success)",
+                    }}
+                  >
+                    {t("statusCompleted", language)}
+                  </span>
+                </div>
 
-              <Detail
-                label={t("detailStarted", language)}
-                value={formatTime(entry.startTimestamp)}
-                helper={formatShortDate(entry.startTimestamp)}
-              />
-              <Detail
-                label={t("detailStopped", language)}
-                value={formatTime(entry.endTimestamp)}
-                helper={formatShortDate(entry.endTimestamp)}
-              />
-              <Detail
-                label={t("detailDuration", language)}
-                value={formatDuration(entry.durationMs)}
-                helper={t("savedToCookieHistory", language)}
-              />
+                <Detail
+                  label={t("detailStarted", language)}
+                  value={formatTime(entry.startTimestamp)}
+                  helper={formatShortDate(entry.startTimestamp)}
+                />
+                <Detail
+                  label={t("detailStopped", language)}
+                  value={formatTime(entry.endTimestamp)}
+                  helper={formatShortDate(entry.endTimestamp)}
+                />
+                <Detail
+                  label={t("detailDuration", language)}
+                  value={formatDuration(
+                    getRoundedDurationMs(
+                      entry.durationMs,
+                      roundingConfig.enabled,
+                      roundingConfig.intervalMinutes,
+                    ),
+                  )}
+                  helper={t("finishedAt", language)}
+                />
 
-              {editingEntryId !== entry.id ? (
-                <div className="lg:col-span-4 flex justify-start">
+                {editingEntryId !== entry.id ? (
                   <button
                     type="button"
                     onClick={() => handleStartEdit(entry)}
                     disabled={editingEntryId !== null}
-                    className="action-button disabled:cursor-not-allowed disabled:opacity-55"
+                    className="ghost-button justify-self-start lg:justify-self-end"
                   >
                     {t("editEntry", language)}
                   </button>
-                </div>
-              ) : null}
+                ) : (
+                  <span />
+                )}
+              </div>
 
               {editingEntryId === entry.id ? (
                 <form
                   onSubmit={(event) => handleSaveEdit(event, entry.id)}
-                  className="surface lg:col-span-4 grid gap-3 rounded-2xl border border-slate-300/70 px-4 py-4 dark:border-white/10"
+                  className="mt-4 grid gap-3 rounded-xl border p-4"
+                  style={{
+                    borderColor: "var(--border)",
+                    background: "var(--surface)",
+                  }}
                 >
                   <p className="eyebrow">{t("editEntry", language)}</p>
                   <label className="block">
-                    <span className="text-sm text-slate-700 dark:text-slate-200">
+                    <span
+                      className="text-sm"
+                      style={{ color: "var(--text-muted)" }}
+                    >
                       {t("editStartLabel", language)}
                     </span>
                     <input
                       type="datetime-local"
                       value={editStartInput}
-                      onChange={(event) => setEditStartInput(event.target.value)}
+                      onChange={(event) =>
+                        setEditStartInput(event.target.value)
+                      }
                       autoFocus
-                      className="mt-2 w-full rounded-xl border border-slate-300/70 bg-white/85 px-3 py-2 text-slate-900 outline-none dark:border-white/20 dark:bg-slate-800 dark:text-slate-100"
+                      className="field mt-1.5"
                       required
                     />
                   </label>
 
                   <label className="block">
-                    <span className="text-sm text-slate-700 dark:text-slate-200">
+                    <span
+                      className="text-sm"
+                      style={{ color: "var(--text-muted)" }}
+                    >
                       {t("editDurationMinutesLabel", language)}
                     </span>
                     <input
@@ -223,17 +261,21 @@ export function HistoryPanel({
                       min={1}
                       step={1}
                       value={editDurationInput}
-                      onChange={(event) => setEditDurationInput(event.target.value)}
-                      className="mt-2 w-full rounded-xl border border-slate-300/70 bg-white/85 px-3 py-2 text-slate-900 outline-none dark:border-white/20 dark:bg-slate-800 dark:text-slate-100"
+                      onChange={(event) =>
+                        setEditDurationInput(event.target.value)
+                      }
+                      className="field mt-1.5"
                       required
                     />
                   </label>
 
                   {editError ? (
-                    <p className="text-sm text-rose-600 dark:text-rose-400">{editError}</p>
+                    <p className="text-sm" style={{ color: "var(--danger)" }}>
+                      {editError}
+                    </p>
                   ) : null}
 
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-2">
                     <button type="submit" className="primary-button">
                       {t("save", language)}
                     </button>
@@ -265,12 +307,17 @@ function Detail({ label, value, helper }: DetailProps) {
   return (
     <div>
       <p className="eyebrow">{label}</p>
-      <p className="mono-face mt-2 text-lg font-medium text-slate-950 dark:text-white">
+      <p
+        className="mono-face mt-1 text-sm font-medium"
+        style={{ color: "var(--text)" }}
+      >
         {value}
       </p>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      <p className="mt-0.5 text-xs" style={{ color: "var(--text-subtle)" }}>
         {helper}
       </p>
     </div>
   );
 }
+
+export default HistoryPanel;
