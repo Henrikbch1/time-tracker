@@ -205,6 +205,31 @@ const strings = {
     notifPausedTitle: "Paused tasks waiting",
     notifPausedBody: "paused task(s) ready to resume",
 
+    // Settings – Rounding & Export
+    roundingExportSection: "Rounding & Export",
+    roundingEnabledLabel: "Enable rounding",
+    roundingModeLabel: "Rounding interval",
+    roundingNone: "No rounding",
+    rounding5min: "Round to 5 minutes",
+    rounding10min: "Round to 10 minutes",
+    rounding15min: "Round to 15 minutes",
+    roundingCustom: "Custom",
+    roundingCustomLabel: "Custom interval (minutes)",
+    roundingHelp:
+      "Automatically round session durations up to the nearest interval",
+    roundingInvalid: "Rounding interval must be between 1 and 60 minutes",
+    exportFormatLabel: "Export format",
+    exportFormatTextBlock: "Text block (line by line)",
+    exportFormatTable: "Table format",
+    exportTimeFormatLabel: "Time display format",
+    exportTimeFormatHHMM: "HH:MM (e.g., 03:45)",
+    exportTimeFormatHDecimal: "Decimal hours (e.g., 3.75)",
+    exportTimeFormatMinutes: "Minutes (e.g., 225)",
+    exportIncludeTaskLabel: "Include task name",
+    exportIncludeTagLabel: "Include tag",
+    quickExportToday: "Quick export (today)",
+    quickExportTodayHelp: "Export and copy today's times with rounding applied",
+
     // Export columns
     exportColTask: "Task",
     exportColTag: "Tag",
@@ -421,6 +446,32 @@ const strings = {
     notifLongTimerBody: "Dein Timer läuft seit über 4 Stunden.",
     notifPausedTitle: "Pausierte Tasks",
     notifPausedBody: "pausierte Task(s) bereit zum Fortsetzen",
+
+    // Settings – Rounding & Export
+    roundingExportSection: "Rundung & Export",
+    roundingEnabledLabel: "Rundung aktivieren",
+    roundingModeLabel: "Rundungs-Intervall",
+    roundingNone: "Keine Rundung",
+    rounding5min: "Auf 5 Minuten runden",
+    rounding10min: "Auf 10 Minuten runden",
+    rounding15min: "Auf 15 Minuten runden",
+    roundingCustom: "Benutzerdefiniert",
+    roundingCustomLabel: "Benutzerdefiniertes Intervall (Minuten)",
+    roundingHelp:
+      "Session-Dauern automatisch auf das nächste Intervall aufrunden",
+    roundingInvalid: "Rundungs-Intervall muss zwischen 1 und 60 Minuten liegen",
+    exportFormatLabel: "Exportformat",
+    exportFormatTextBlock: "Textblock (Zeile für Zeile)",
+    exportFormatTable: "Tabellenformat",
+    exportTimeFormatLabel: "Zeitanzeigeformat",
+    exportTimeFormatHHMM: "HH:MM (z.B. 03:45)",
+    exportTimeFormatHDecimal: "Dezimal-Stunden (z.B. 3,75)",
+    exportTimeFormatMinutes: "Minuten (z.B. 225)",
+    exportIncludeTaskLabel: "Aufgabenname einbeziehen",
+    exportIncludeTagLabel: "Tag einbeziehen",
+    quickExportToday: "Schnellexport (heute)",
+    quickExportTodayHelp:
+      "Zeiten von heute mit angewendeter Rundung exportieren",
 
     // Export columns
     exportColTask: "Aufgabe",

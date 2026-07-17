@@ -17,9 +17,15 @@ import {
   readWorkdays,
   readFavorites,
   writeFavorites,
+  readRoundingConfig,
+  writeRoundingConfig,
+  readExportConfig,
+  writeExportConfig,
   type ActiveSession,
   type HistoryEntry,
   type Tag,
+  type RoundingConfig,
+  type ExportConfig,
   writeActiveSession,
   writeHistory,
   writePausedSessions,
@@ -30,7 +36,13 @@ import { useInterval } from "../hooks/useInterval";
 import { downloadHistory } from "../lib/export";
 import { getElapsedDuration } from "../lib/time";
 import { formatLocalYMD } from "../lib/date";
-import { startOfMonth, startOfWeek, sumDurationInRange } from "../lib/stats";
+import {
+  groupRoundedDurationsByTaskDay,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+  type RoundedTaskDaySegment,
+} from "../lib/stats";
 import t from "../i18n";
 
 type WorkdaysMap = Record<
@@ -53,6 +65,10 @@ interface TrackerContextValue {
   setDailyGoalHours: (n: number) => void;
   workdays: WorkdaysMap;
   setWorkdays: (m: WorkdaysMap) => void;
+  roundingConfig: RoundingConfig;
+  setRoundingConfig: (config: RoundingConfig) => void;
+  exportConfig: ExportConfig;
+  setExportConfig: (config: ExportConfig) => void;
   elapsedMs: number;
   totalTrackedMs: number;
   totalsByTag: Record<string, number>;
@@ -108,6 +124,8 @@ function getInitialState() {
     favorites: readFavorites(),
     dailyGoalHours: readDailyGoal() ?? 8,
     workdays: readWorkdays(),
+    roundingConfig: readRoundingConfig(),
+    exportConfig: readExportConfig(),
     now: Date.now(),
   };
 }
@@ -138,6 +156,29 @@ function toPausedSession(
   };
 }
 
+function toHistorySegment(entry: HistoryEntry): RoundedTaskDaySegment {
+  return {
+    taskName: entry.taskName,
+    tagId: entry.tagId,
+    durationMs: entry.durationMs,
+    dayKey: formatLocalYMD(entry.endTimestamp),
+    dayTimestamp: startOfDay(entry.endTimestamp),
+  };
+}
+
+function toSessionSegment(
+  session: ActiveSession,
+  durationMs: number,
+): RoundedTaskDaySegment {
+  return {
+    taskName: session.taskName,
+    tagId: session.tagId,
+    durationMs,
+    dayKey: formatLocalYMD(session.createdTimestamp),
+    dayTimestamp: startOfDay(session.createdTimestamp),
+  };
+}
+
 export function TrackerProvider({
   children,
 }: Readonly<{ children: ReactNode }>) {
@@ -157,6 +198,12 @@ export function TrackerProvider({
   const [now, setNow] = useState(initial.now);
   const [dailyGoalHours, setDailyGoalHours] = useState(initial.dailyGoalHours);
   const [workdays, setWorkdays] = useState<WorkdaysMap>(initial.workdays);
+  const [roundingConfig, setRoundingConfig] = useState<RoundingConfig>(
+    initial.roundingConfig,
+  );
+  const [exportConfig, setExportConfig] = useState<ExportConfig>(
+    initial.exportConfig,
+  );
 
   useEffect(() => {
     if (activeSession) {
@@ -180,6 +227,14 @@ export function TrackerProvider({
     writeFavorites(favorites);
   }, [favorites]);
 
+  useEffect(() => {
+    writeRoundingConfig(roundingConfig);
+  }, [roundingConfig]);
+
+  useEffect(() => {
+    writeExportConfig(exportConfig);
+  }, [exportConfig]);
+
   useInterval(
     () => {
       setNow(Date.now());
@@ -188,62 +243,77 @@ export function TrackerProvider({
   );
 
   const elapsedMs = activeSession ? getSessionElapsedMs(activeSession, now) : 0;
-  const totalTrackedMs = history.reduce(
-    (total, entry) => total + entry.durationMs,
+  const historySegments = useMemo(
+    () => history.map((entry) => toHistorySegment(entry)),
+    [history],
+  );
+  const historyRoundedGroups = useMemo(
+    () => groupRoundedDurationsByTaskDay(historySegments, roundingConfig),
+    [historySegments, roundingConfig],
+  );
+  const visibleSegments = useMemo(() => {
+    const segments = [...historySegments];
+
+    for (const session of pausedSessions) {
+      segments.push(
+        toSessionSegment(
+          session,
+          Math.max(0, Math.floor(session.accumulatedMs)),
+        ),
+      );
+    }
+
+    if (activeSession) {
+      segments.push(toSessionSegment(activeSession, elapsedMs));
+    }
+
+    return segments;
+  }, [historySegments, pausedSessions, activeSession, elapsedMs]);
+  const visibleRoundedGroups = useMemo(
+    () => groupRoundedDurationsByTaskDay(visibleSegments, roundingConfig),
+    [visibleSegments, roundingConfig],
+  );
+  const totalTrackedMs = historyRoundedGroups.reduce(
+    (total, group) => total + group.roundedDurationMs,
     0,
   );
   const todayKey = formatLocalYMD(now);
 
   const totalsByTag = useMemo(
     () =>
-      history.reduce((map: Record<string, number>, entry) => {
-        if (entry.tagId)
-          map[entry.tagId] = (map[entry.tagId] || 0) + entry.durationMs;
+      visibleRoundedGroups.reduce((map: Record<string, number>, group) => {
+        if (group.tagId)
+          map[group.tagId] = (map[group.tagId] || 0) + group.roundedDurationMs;
         return map;
       }, {}),
-    [history],
+    [visibleRoundedGroups],
   );
 
   const totalsByTask = useMemo(() => {
-    const map = history.reduce((acc: Record<string, number>, entry) => {
-      acc[entry.taskName] = (acc[entry.taskName] || 0) + entry.durationMs;
-      return acc;
-    }, {});
-
-    for (const paused of pausedSessions) {
-      map[paused.taskName] =
-        (map[paused.taskName] || 0) +
-        Math.max(0, Math.floor(paused.accumulatedMs));
-    }
-
-    if (activeSession) {
-      map[activeSession.taskName] =
-        (map[activeSession.taskName] || 0) + elapsedMs;
-    }
+    const map = visibleRoundedGroups.reduce(
+      (acc: Record<string, number>, group) => {
+        acc[group.taskName] =
+          (acc[group.taskName] || 0) + group.roundedDurationMs;
+        return acc;
+      },
+      {},
+    );
     return map;
-  }, [history, pausedSessions, activeSession, elapsedMs]);
+  }, [visibleRoundedGroups]);
 
   const { todayTrackedMs, totalsByTaskToday } = useMemo(() => {
     const map: Record<string, number> = {};
     let total = 0;
 
-    for (const entry of history) {
-      if (formatLocalYMD(entry.endTimestamp) !== todayKey) continue;
-      map[entry.taskName] = (map[entry.taskName] || 0) + entry.durationMs;
-      total += entry.durationMs;
-    }
-
-    if (
-      activeSession &&
-      formatLocalYMD(activeSession.createdTimestamp) === todayKey
-    ) {
-      map[activeSession.taskName] =
-        (map[activeSession.taskName] || 0) + elapsedMs;
-      total += elapsedMs;
+    for (const group of visibleRoundedGroups) {
+      if (group.dayKey !== todayKey) continue;
+      map[group.taskName] =
+        (map[group.taskName] || 0) + group.roundedDurationMs;
+      total += group.roundedDurationMs;
     }
 
     return { todayTrackedMs: total, totalsByTaskToday: map };
-  }, [history, activeSession, elapsedMs, todayKey]);
+  }, [visibleRoundedGroups, todayKey]);
 
   const completedToday = useMemo(
     () =>
@@ -254,21 +324,25 @@ export function TrackerProvider({
 
   const weekTrackedMs = useMemo(() => {
     const weekStart = startOfWeek(now);
-    let total = sumDurationInRange(history, weekStart, now + 1);
-    if (activeSession && activeSession.createdTimestamp >= weekStart) {
-      total += elapsedMs;
-    }
+    let total = visibleRoundedGroups.reduce((acc, group) => {
+      if (group.dayTimestamp < weekStart || group.dayTimestamp >= now + 1) {
+        return acc;
+      }
+      return acc + group.roundedDurationMs;
+    }, 0);
     return total;
-  }, [history, activeSession, elapsedMs, now]);
+  }, [visibleRoundedGroups, now]);
 
   const monthTrackedMs = useMemo(() => {
     const monthStart = startOfMonth(now);
-    let total = sumDurationInRange(history, monthStart, now + 1);
-    if (activeSession && activeSession.createdTimestamp >= monthStart) {
-      total += elapsedMs;
-    }
+    let total = visibleRoundedGroups.reduce((acc, group) => {
+      if (group.dayTimestamp < monthStart || group.dayTimestamp >= now + 1) {
+        return acc;
+      }
+      return acc + group.roundedDurationMs;
+    }, 0);
     return total;
-  }, [history, activeSession, elapsedMs, now]);
+  }, [visibleRoundedGroups, now]);
 
   const toggleFavorite = useCallback((taskName: string) => {
     const normalized = taskName.trim();
@@ -422,8 +496,8 @@ export function TrackerProvider({
 
   const handleExport = useCallback(() => {
     if (history.length === 0) return;
-    downloadHistory(history, tags, language);
-  }, [history, tags, language]);
+    downloadHistory(history, tags, language, roundingConfig);
+  }, [history, tags, language, roundingConfig]);
 
   const handleClearHistory = useCallback(() => {
     if (history.length === 0) return;
@@ -474,6 +548,10 @@ export function TrackerProvider({
       setDailyGoalHours,
       workdays,
       setWorkdays,
+      roundingConfig,
+      setRoundingConfig,
+      exportConfig,
+      setExportConfig,
       elapsedMs,
       totalTrackedMs,
       totalsByTag,
@@ -507,6 +585,8 @@ export function TrackerProvider({
       now,
       dailyGoalHours,
       workdays,
+      roundingConfig,
+      exportConfig,
       elapsedMs,
       totalTrackedMs,
       totalsByTag,

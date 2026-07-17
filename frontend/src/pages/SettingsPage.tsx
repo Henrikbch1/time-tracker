@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ThemeToggle } from "../components/ThemeToggle";
 import LanguageToggle from "../components/LanguageToggle";
 import { useTheme } from "../context/ThemeContext";
@@ -20,6 +20,10 @@ export default function SettingsPage() {
     setDailyGoalHours,
     workdays,
     setWorkdays,
+    roundingConfig,
+    setRoundingConfig,
+    exportConfig,
+    setExportConfig,
     handleClearHistory,
   } = useTracker();
 
@@ -27,7 +31,33 @@ export default function SettingsPage() {
   const [newTagColor, setNewTagColor] = useState("#4f46e5");
   const [goalHours, setGoalHours] = useState<number>(dailyGoalHours);
   const [localWorkdays, setLocalWorkdays] = useState(() => workdays);
-  const [saved, setSaved] = useState(false);
+
+  // Rounding settings - auto-save
+  const [localRounding, setLocalRounding] = useState(roundingConfig);
+
+  // Export config settings - auto-save
+  const [localExportConfig, setLocalExportConfig] = useState(exportConfig);
+
+  // Auto-save rounding config
+  useEffect(() => {
+    setRoundingConfig(localRounding);
+  }, [localRounding, setRoundingConfig]);
+
+  // Auto-save export config
+  useEffect(() => {
+    setExportConfig(localExportConfig);
+  }, [localExportConfig, setExportConfig]);
+
+  // Auto-save workdays
+  useEffect(() => {
+    setDailyGoalHours(goalHours);
+    writeDailyGoal(goalHours);
+  }, [goalHours, setDailyGoalHours]);
+
+  useEffect(() => {
+    setWorkdays(localWorkdays);
+    writeWorkdays(localWorkdays);
+  }, [localWorkdays, setWorkdays]);
 
   const weekdayKeys = [
     "mon",
@@ -190,6 +220,244 @@ export default function SettingsPage() {
         )}
       </section>
 
+      {/* Rounding & Export */}
+      <section className="surface p-5 sm:p-6">
+        <p className="eyebrow">{t("roundingExportSection", language)}</p>
+        <div className="mt-4 flex flex-col gap-4">
+          {/* Rounding Section */}
+          <div>
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="rounding-enabled"
+                checked={localRounding.enabled}
+                onChange={(event) =>
+                  setLocalRounding({
+                    ...localRounding,
+                    enabled: event.target.checked,
+                  })
+                }
+                className="h-4 w-4 cursor-pointer"
+              />
+              <label
+                htmlFor="rounding-enabled"
+                className="text-sm font-medium cursor-pointer"
+                style={{ color: "var(--text)" }}
+              >
+                {t("roundingEnabledLabel", language)}
+              </label>
+            </div>
+            <p className="mt-1 text-xs" style={{ color: "var(--text-subtle)" }}>
+              {t("roundingHelp", language)}
+            </p>
+          </div>
+
+          {localRounding.enabled && (
+            <div>
+              <label
+                className="text-sm font-medium"
+                style={{ color: "var(--text)" }}
+              >
+                {t("roundingModeLabel", language)}
+              </label>
+              <div className="mt-2 flex flex-col gap-2">
+                {[
+                  { value: 0, label: t("roundingNone", language) },
+                  { value: 5, label: t("rounding5min", language) },
+                  { value: 10, label: t("rounding10min", language) },
+                  { value: 15, label: t("rounding15min", language) },
+                  { value: -1, label: t("roundingCustom", language) },
+                ].map((option) => (
+                  <div key={option.value} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="rounding-mode"
+                      id={`rounding-${option.value}`}
+                      checked={
+                        option.value === -1
+                          ? localRounding.intervalMinutes !== 0 &&
+                            localRounding.intervalMinutes !== 5 &&
+                            localRounding.intervalMinutes !== 10 &&
+                            localRounding.intervalMinutes !== 15
+                          : localRounding.intervalMinutes === option.value
+                      }
+                      onChange={() => {
+                        if (option.value !== -1) {
+                          setLocalRounding({
+                            ...localRounding,
+                            intervalMinutes: option.value,
+                          });
+                        }
+                      }}
+                      className="h-4 w-4 cursor-pointer"
+                    />
+                    <label
+                      htmlFor={`rounding-${option.value}`}
+                      className="text-sm cursor-pointer"
+                      style={{ color: "var(--text)" }}
+                    >
+                      {option.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+
+              {localRounding.enabled &&
+                localRounding.intervalMinutes !== 0 &&
+                localRounding.intervalMinutes !== 5 &&
+                localRounding.intervalMinutes !== 10 &&
+                localRounding.intervalMinutes !== 15 && (
+                  <div className="mt-3">
+                    <label
+                      className="text-sm font-medium"
+                      style={{ color: "var(--text)" }}
+                    >
+                      {t("roundingCustomLabel", language)}
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={60}
+                      value={localRounding.intervalMinutes}
+                      onChange={(event) => {
+                        const v = Number(event.target.value);
+                        if (Number.isFinite(v) && v > 0 && v <= 60) {
+                          setLocalRounding({
+                            ...localRounding,
+                            intervalMinutes: v,
+                          });
+                        }
+                      }}
+                      className="field mt-1.5 w-32"
+                    />
+                  </div>
+                )}
+            </div>
+          )}
+
+          {/* Export Format Section */}
+          <div className="border-t" style={{ borderColor: "var(--border)" }}>
+            <p
+              className="mt-4 text-sm font-medium"
+              style={{ color: "var(--text)" }}
+            >
+              {t("exportFormatLabel", language)}
+            </p>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              {[
+                {
+                  value: "textBlock" as const,
+                  label: t("exportFormatTextBlock", language),
+                },
+                {
+                  value: "table" as const,
+                  label: t("exportFormatTable", language),
+                },
+              ].map((option) => (
+                <label
+                  key={option.value}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="export-format"
+                    checked={localExportConfig.format === option.value}
+                    onChange={() =>
+                      setLocalExportConfig({
+                        ...localExportConfig,
+                        format: option.value,
+                      })
+                    }
+                    className="h-4 w-4"
+                  />
+                  <span className="text-sm" style={{ color: "var(--text)" }}>
+                    {option.label}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium" style={{ color: "var(--text)" }}>
+              {t("exportTimeFormatLabel", language)}
+            </p>
+            <div className="mt-2 flex flex-col gap-2">
+              {[
+                {
+                  value: "HH:MM" as const,
+                  label: t("exportTimeFormatHHMM", language),
+                },
+                {
+                  value: "H.H" as const,
+                  label: t("exportTimeFormatHDecimal", language),
+                },
+                {
+                  value: "minutes" as const,
+                  label: t("exportTimeFormatMinutes", language),
+                },
+              ].map((option) => (
+                <label
+                  key={option.value}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="export-time-format"
+                    checked={localExportConfig.timeFormat === option.value}
+                    onChange={() =>
+                      setLocalExportConfig({
+                        ...localExportConfig,
+                        timeFormat: option.value,
+                      })
+                    }
+                    className="h-4 w-4"
+                  />
+                  <span className="text-sm" style={{ color: "var(--text)" }}>
+                    {option.label}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={localExportConfig.includeTaskName}
+                onChange={(event) =>
+                  setLocalExportConfig({
+                    ...localExportConfig,
+                    includeTaskName: event.target.checked,
+                  })
+                }
+                className="h-4 w-4"
+              />
+              <span className="text-sm" style={{ color: "var(--text)" }}>
+                {t("exportIncludeTaskLabel", language)}
+              </span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={localExportConfig.includeTag}
+                onChange={(event) =>
+                  setLocalExportConfig({
+                    ...localExportConfig,
+                    includeTag: event.target.checked,
+                  })
+                }
+                className="h-4 w-4"
+              />
+              <span className="text-sm" style={{ color: "var(--text)" }}>
+                {t("exportIncludeTagLabel", language)}
+              </span>
+            </label>
+          </div>
+        </div>
+      </section>
+
       {/* Work goals */}
       <section className="surface p-5 sm:p-6">
         <p className="eyebrow">{t("workGoalSection", language)}</p>
@@ -257,24 +525,6 @@ export default function SettingsPage() {
                 </div>
               ))}
             </div>
-          </div>
-
-          <div>
-            <button
-              type="button"
-              className="primary-button"
-              onClick={() => {
-                setDailyGoalHours(goalHours);
-                setWorkdays(localWorkdays);
-                writeDailyGoal(goalHours);
-                writeWorkdays(localWorkdays);
-                setSaved(true);
-                window.setTimeout(() => setSaved(false), 2000);
-              }}
-              aria-live="polite"
-            >
-              {saved ? t("saved", language) : t("save", language)}
-            </button>
           </div>
         </div>
       </section>

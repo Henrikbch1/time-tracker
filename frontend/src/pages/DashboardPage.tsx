@@ -5,7 +5,11 @@ import { useTracker } from "../context/TrackerContext";
 import KpiCard from "../components/KpiCard";
 import TimerWidget from "../components/TimerWidget";
 import { TrendChart } from "../components/Charts";
-import { formatDuration, formatDateTime } from "../lib/time";
+import {
+  formatDuration,
+  formatDateTime,
+  getRoundedDurationMs,
+} from "../lib/time";
 import { dailyTrend } from "../lib/stats";
 import { ChartIcon, ClockIcon } from "../components/icons";
 import t from "../i18n";
@@ -31,10 +35,11 @@ export default function DashboardPage() {
     weekTrackedMs,
     monthTrackedMs,
     completedToday,
+    roundingConfig,
   } = useTracker();
 
   const name = profile.name.trim() || t("greetingFallback", language);
-  const trend = dailyTrend(history, now, 14);
+  const trend = dailyTrend(history, now, 14, roundingConfig);
 
   return (
     <div className="flex flex-col gap-6">
@@ -135,7 +140,13 @@ export default function DashboardPage() {
                       className="mono-face shrink-0 text-sm font-medium"
                       style={{ color: "var(--text-muted)" }}
                     >
-                      {formatDuration(entry.durationMs)}
+                      {formatDuration(
+                        getRoundedDurationMs(
+                          entry.durationMs,
+                          roundingConfig.enabled,
+                          roundingConfig.intervalMinutes,
+                        ),
+                      )}
                     </span>
                   </li>
                 );

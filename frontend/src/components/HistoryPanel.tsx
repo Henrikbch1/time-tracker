@@ -1,6 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { type HistoryEntry, type Tag, type Language } from "../lib/cookies";
-import { formatDuration, formatShortDate, formatTime } from "../lib/time";
+import {
+  formatDuration,
+  formatShortDate,
+  formatTime,
+  getRoundedDurationMs,
+} from "../lib/time";
+import { useTracker } from "../context/TrackerContext";
 import { ExportMenu } from "./ExportMenu";
 import t from "../i18n";
 
@@ -56,6 +62,7 @@ export function HistoryPanel({
   title,
   subtitle,
 }: HistoryPanelProps) {
+  const { roundingConfig } = useTracker();
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [editStartInput, setEditStartInput] = useState("");
   const [editDurationInput, setEditDurationInput] = useState("");
@@ -189,7 +196,13 @@ export function HistoryPanel({
                 />
                 <Detail
                   label={t("detailDuration", language)}
-                  value={formatDuration(entry.durationMs)}
+                  value={formatDuration(
+                    getRoundedDurationMs(
+                      entry.durationMs,
+                      roundingConfig.enabled,
+                      roundingConfig.intervalMinutes,
+                    ),
+                  )}
                   helper={t("finishedAt", language)}
                 />
 

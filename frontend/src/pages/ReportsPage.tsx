@@ -6,6 +6,7 @@ import {
   TrendChart,
 } from "../components/Charts";
 import { ExportMenu } from "../components/ExportMenu";
+import { QuickExportToday } from "../components/QuickExportToday";
 import KpiCard from "../components/KpiCard";
 import { formatDuration } from "../lib/time";
 import {
@@ -28,9 +29,11 @@ export default function ReportsPage() {
     totalTrackedMs,
     weekTrackedMs,
     monthTrackedMs,
+    roundingConfig,
+    exportConfig,
   } = useTracker();
 
-  const trend = dailyTrend(history, now, 14);
+  const trend = dailyTrend(history, now, 14, roundingConfig);
 
   const taskSeries = toCategorySeries(
     totalsByTask,
@@ -58,7 +61,17 @@ export default function ReportsPage() {
             {t("reportsSubtitle", language)}
           </p>
         </div>
-        <ExportMenu history={history} tags={tags} language={language} />
+        <div className="flex gap-2">
+          <QuickExportToday
+            history={history}
+            now={now}
+            tags={tags}
+            roundingConfig={roundingConfig}
+            exportConfig={exportConfig}
+            language={language}
+          />
+          <ExportMenu history={history} tags={tags} language={language} />
+        </div>
       </header>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">

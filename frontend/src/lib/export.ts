@@ -1,5 +1,17 @@
-import { type HistoryEntry, type Tag, type Language } from "./cookies";
-import { formatDateTime, formatDuration } from "./time";
+import {
+  type HistoryEntry,
+  type Tag,
+  type Language,
+  type ExportConfig,
+  type RoundingConfig,
+} from "./cookies";
+import {
+  formatDateTime,
+  formatDuration,
+  formatDurationFlexible,
+  getRoundedDurationMs,
+} from "./time";
+import { getGroupedTodayTasks } from "./stats";
 import t from "../i18n";
 
 export type ExportFormat = "csv" | "xlsx" | "pdf";
@@ -31,6 +43,7 @@ function buildRows(
   history: HistoryEntry[],
   tags: Tag[],
   language: Language,
+  roundingConfig?: RoundingConfig,
 ): string[][] {
   return history.map((entry, index) => [
     String(index + 1),
@@ -38,7 +51,13 @@ function buildRows(
     resolveTagName(entry, tags, language),
     formatDateTime(entry.startTimestamp),
     formatDateTime(entry.endTimestamp),
-    formatDuration(entry.durationMs),
+    formatDuration(
+      getRoundedDurationMs(
+        entry.durationMs,
+        roundingConfig?.enabled ?? false,
+        roundingConfig?.intervalMinutes ?? 0,
+      ),
+    ),
   ]);
 }
 
@@ -68,8 +87,12 @@ export function exportCsv(
   history: HistoryEntry[],
   tags: Tag[] = [],
   language: Language = "en",
+  roundingConfig?: RoundingConfig,
 ) {
-  const rows = [buildHeader(language), ...buildRows(history, tags, language)];
+  const rows = [
+    buildHeader(language),
+    ...buildRows(history, tags, language, roundingConfig),
+  ];
   const csv = rows.map((row) => row.map(escapeCsvCell).join(",")).join("\r\n");
   // Prepend BOM so spreadsheet apps detect UTF-8 correctly.
   const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" });
@@ -80,9 +103,13 @@ export async function exportXlsx(
   history: HistoryEntry[],
   tags: Tag[] = [],
   language: Language = "en",
+  roundingConfig?: RoundingConfig,
 ) {
   const XLSX = await import("xlsx");
-  const rows = [buildHeader(language), ...buildRows(history, tags, language)];
+  const rows = [
+    buildHeader(language),
+    ...buildRows(history, tags, language, roundingConfig),
+  ];
   const worksheet = XLSX.utils.aoa_to_sheet(rows);
   worksheet["!cols"] = [
     { wch: 5 },
@@ -113,9 +140,10 @@ export function exportPdf(
   history: HistoryEntry[],
   tags: Tag[] = [],
   language: Language = "en",
+  roundingConfig?: RoundingConfig,
 ) {
   const header = buildHeader(language);
-  const rows = buildRows(history, tags, language);
+  const rows = buildRows(history, tags, language, roundingConfig);
   const title = t("exportFileName", language);
 
   const headHtml = header
@@ -166,11 +194,14 @@ export function exportHistory(
   history: HistoryEntry[],
   tags: Tag[] = [],
   language: Language = "en",
+  roundingConfig?: RoundingConfig,
 ) {
   if (history.length === 0) return;
-  if (format === "csv") return exportCsv(history, tags, language);
-  if (format === "xlsx") return exportXlsx(history, tags, language);
-  return exportPdf(history, tags, language);
+  if (format === "csv")
+    return exportCsv(history, tags, language, roundingConfig);
+  if (format === "xlsx")
+    return exportXlsx(history, tags, language, roundingConfig);
+  return exportPdf(history, tags, language, roundingConfig);
 }
 
 // Backwards-compatible default export (used by TrackerContext.handleExport).
@@ -178,6 +209,153 @@ export function downloadHistory(
   history: HistoryEntry[],
   tags: Tag[] = [],
   language: Language = "en",
+  roundingConfig?: RoundingConfig,
 ) {
-  exportCsv(history, tags, language);
+  exportCsv(history, tags, language, roundingConfig);
+}
+
+/**
+ * Generate formatted text representation of today's tasks with rounding applied.
+ * @param history - History entries
+ * @param now - Current timestamp
+ * @param tags - Available tags
+ * @param roundingConfig - Rounding configuration
+ * @param exportConfig - Export format configuration
+ * @param language - Language for formatting
+ * @returns Formatted text (HTML-safe)
+ */
+export function exportFormattedToday(
+  history: HistoryEntry[],
+  now: number,
+  tags: Tag[],
+  roundingConfig: RoundingConfig,
+  exportConfig: ExportConfig,
+  language: Language = "en",
+): string {
+  const grouped = getGroupedTodayTasks(history, now, roundingConfig);
+
+  if (grouped.length === 0) {
+    return t("noSessionsSaved", language);
+  }
+
+  if (exportConfig.format === "table") {
+    return exportFormattedAsTable(grouped, tags, exportConfig, language);
+  }
+
+  return exportFormattedAsTextBlock(grouped, tags, exportConfig, language);
+}
+
+function resolveTagNameForExport(
+  tagId: string | undefined,
+  tags: Tag[],
+  language: Language,
+): string {
+  if (!tagId) return "";
+  return (
+    tags.find((tag) => tag.id === tagId)?.name ?? t("deletedLabel", language)
+  );
+}
+
+function formatDurationForExport(
+  durationMs: number,
+  format: "HH:MM" | "H.H" | "minutes",
+): string {
+  return formatDurationFlexible(durationMs, format);
+}
+
+interface GroupedTask {
+  taskName: string;
+  tagId?: string;
+  totalDurationMs: number;
+  roundedDurationMs: number;
+  entries: HistoryEntry[];
+}
+
+function exportFormattedAsTextBlock(
+  grouped: GroupedTask[],
+  tags: Tag[],
+  exportConfig: ExportConfig,
+  language: Language,
+): string {
+  const lines: string[] = [];
+
+  for (const group of grouped) {
+    let line = "";
+
+    if (exportConfig.includeTaskName) {
+      line += group.taskName;
+    }
+
+    if (exportConfig.includeTag && group.tagId) {
+      const tagName = resolveTagNameForExport(group.tagId, tags, language);
+      if (line) line += " | ";
+      line += tagName;
+    }
+
+    const duration = formatDurationForExport(
+      group.roundedDurationMs,
+      exportConfig.timeFormat,
+    );
+    if (line) line += ": ";
+    line += duration;
+
+    lines.push(line);
+  }
+
+  return lines.join("\n");
+}
+
+function exportFormattedAsTable(
+  grouped: GroupedTask[],
+  tags: Tag[],
+  exportConfig: ExportConfig,
+  language: Language,
+): string {
+  const lines: string[] = [];
+  const parts: string[] = [];
+
+  if (exportConfig.includeTaskName) {
+    parts.push(t("exportColTask", language));
+  }
+  if (exportConfig.includeTag) {
+    parts.push(t("exportColTag", language));
+  }
+  parts.push(t("exportColDuration", language));
+
+  lines.push(parts.join("\t"));
+  lines.push("-".repeat(50));
+
+  for (const group of grouped) {
+    const rowParts: string[] = [];
+
+    if (exportConfig.includeTaskName) {
+      rowParts.push(group.taskName);
+    }
+    if (exportConfig.includeTag && group.tagId) {
+      const tagName = resolveTagNameForExport(group.tagId, tags, language);
+      rowParts.push(tagName);
+    }
+
+    const duration = formatDurationForExport(
+      group.roundedDurationMs,
+      exportConfig.timeFormat,
+    );
+    rowParts.push(duration);
+
+    lines.push(rowParts.join("\t"));
+  }
+
+  return lines.join("\n");
+}
+
+/**
+ * Calculate total duration for today with rounding applied.
+ */
+export function getTodayTotalDuration(
+  history: HistoryEntry[],
+  now: number,
+  roundingConfig: RoundingConfig,
+): number {
+  const grouped = getGroupedTodayTasks(history, now, roundingConfig);
+  return grouped.reduce((sum, group) => sum + group.roundedDurationMs, 0);
 }
