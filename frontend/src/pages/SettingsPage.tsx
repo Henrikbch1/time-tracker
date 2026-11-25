@@ -5,7 +5,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useProfile } from "../context/ProfileContext";
 import { useTracker } from "../context/TrackerContext";
-import { writeDailyGoal, writeWorkdays, type Tag } from "../lib/cookies";
+import { writeWorkdays, type Tag } from "../lib/cookies";
 import { PlusIcon } from "../components/icons";
 import t from "../i18n";
 
@@ -16,8 +16,8 @@ export default function SettingsPage() {
   const {
     tags,
     setTags,
-    dailyGoalHours,
-    setDailyGoalHours,
+    carryOverMinutes,
+    setCarryOverMinutes,
     workdays,
     setWorkdays,
     roundingConfig,
@@ -29,7 +29,14 @@ export default function SettingsPage() {
 
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("#4f46e5");
-  const [goalHours, setGoalHours] = useState<number>(dailyGoalHours);
+  const [carryOverText, setCarryOverText] = useState(() =>
+    carryOverMinutes
+      ? String(carryOverMinutes / 60).replace(
+          ".",
+          language === "de" ? "," : ".",
+        )
+      : "",
+  );
   const [localWorkdays, setLocalWorkdays] = useState(() => workdays);
 
   // Rounding settings - auto-save
@@ -47,12 +54,6 @@ export default function SettingsPage() {
   useEffect(() => {
     setExportConfig(localExportConfig);
   }, [localExportConfig, setExportConfig]);
-
-  // Auto-save workdays
-  useEffect(() => {
-    setDailyGoalHours(goalHours);
-    writeDailyGoal(goalHours);
-  }, [goalHours, setDailyGoalHours]);
 
   useEffect(() => {
     setWorkdays(localWorkdays);
@@ -462,36 +463,6 @@ export default function SettingsPage() {
       <section className="surface p-5 sm:p-6">
         <p className="eyebrow">{t("workGoalSection", language)}</p>
         <div className="mt-4 flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-3">
-              <label
-                className="text-sm font-medium"
-                style={{ color: "var(--text)" }}
-              >
-                {t("dailyGoalLabel", language)}
-              </label>
-              <input
-                type="number"
-                min={0}
-                max={24}
-                value={goalHours}
-                onChange={(event) => {
-                  const v = Number(event.target.value);
-                  setGoalHours(
-                    Number.isFinite(v) ? Math.max(0, Math.min(24, v)) : 0,
-                  );
-                }}
-                className="field w-24"
-              />
-              <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-                {t("hours", language)}
-              </span>
-            </div>
-            <p className="text-xs" style={{ color: "var(--text-subtle)" }}>
-              {t("dailyGoalHelp", language)}
-            </p>
-          </div>
-
           <div>
             <p className="text-sm font-medium" style={{ color: "var(--text)" }}>
               {t("workdaysLabel", language)}
@@ -525,6 +496,41 @@ export default function SettingsPage() {
                 </div>
               ))}
             </div>
+          </div>
+          <div
+            className="border-t pt-4"
+            style={{ borderColor: "var(--border)" }}
+          >
+            <p className="text-sm font-medium" style={{ color: "var(--text)" }}>
+              {t("overtimeSection", language)}
+            </p>
+            <p className="mt-1 text-xs" style={{ color: "var(--text-subtle)" }}>
+              {t("overtimeRuleHelp", language)}
+            </p>
+            <label className="mt-3 block">
+              <span className="text-sm" style={{ color: "var(--text-muted)" }}>
+                {t("carryOverLabel", language)}
+              </span>
+              <input
+                type="text"
+                value={carryOverText}
+                placeholder="0"
+                onChange={(event) => {
+                  const raw = event.target.value;
+                  setCarryOverText(raw);
+                  const parsed = Number(
+                    raw.replace(",", ".").replace("−", "-"),
+                  );
+                  if (raw.trim() === "") setCarryOverMinutes(0);
+                  else if (Number.isFinite(parsed))
+                    setCarryOverMinutes(Math.round(parsed * 60));
+                }}
+                className="field mt-1.5 w-32"
+              />
+            </label>
+            <p className="mt-1 text-xs" style={{ color: "var(--text-subtle)" }}>
+              {t("carryOverHelp", language)}
+            </p>
           </div>
         </div>
       </section>

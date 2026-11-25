@@ -44,7 +44,9 @@ Wichtige Regeln im aktuellen Stand:
 
 - Task-Tracking mit Start, Pause, Resume und Stop inklusive optionaler Tags.
 - Favoriten und Quick-Start fuer wiederkehrende Aufgaben.
-- Dashboard mit Live-Timer sowie KPI-Karten fuer Tag, Woche und Monat.
+- Dashboard mit Live-Timer, Tagesfortschritt (Soll/Ist) und kopierbaren Tagesbuchungen pro Aufgabe.
+- Ueberstunden-Saldo (plus/minus) auf Basis der Stunden pro Wochentag, inkl. optionalem Startsaldo und Tagesuebersicht in den Reports.
+- Rueckgaengig nach dem Stoppen, Eintraege loeschen, mobile Tab-Leiste.
 - Reports mit Trend-, Aufgaben- und Tag-Auswertungen.
 - Historie mit Suche, Filtern, Sortierung und editierbaren Eintraegen.
 - Einstellungen fuer Profil, Tagesziel, Workdays, Rundung, Theme und Sprache.
@@ -91,6 +93,8 @@ npm run deploy
 ```
 
 Stelle sicher, dass das Remote-Repository korrekt konfiguriert ist und `homepage` in `frontend/package.json` auf die GitHub-Pages-URL zeigt.
+
+Die App nutzt Hash-Routing (`/#/reports`), weil GitHub Pages keine SPA-Fallbacks kennt. `public/404.html` leitet alte Links wie `/time-tracker/reports` automatisch um.
 
 ## Projektstruktur
 

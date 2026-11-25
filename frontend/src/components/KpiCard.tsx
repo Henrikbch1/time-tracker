@@ -7,6 +7,9 @@ interface KpiCardProps {
   icon?: ReactNode;
   accent?: string;
   live?: boolean;
+  valueColor?: string;
+  hintColor?: string;
+  className?: string;
 }
 
 export function KpiCard({
@@ -16,10 +19,13 @@ export function KpiCard({
   icon,
   accent,
   live,
+  valueColor,
+  hintColor,
+  className,
 }: KpiCardProps) {
   const tint = accent ?? "var(--primary)";
   return (
-    <article className="stat-tile flex flex-col gap-3">
+    <article className={`stat-tile flex flex-col gap-3 ${className ?? ""}`}>
       <div className="flex items-center justify-between">
         <p className="eyebrow">{label}</p>
         {icon ? (
@@ -36,7 +42,7 @@ export function KpiCard({
       </div>
       <p
         className="mono-face text-2xl font-semibold sm:text-3xl"
-        style={{ color: "var(--text)" }}
+        style={{ color: valueColor ?? "var(--text)" }}
       >
         {value}
         {live ? (
@@ -47,7 +53,10 @@ export function KpiCard({
         ) : null}
       </p>
       {hint ? (
-        <p className="text-xs" style={{ color: "var(--text-subtle)" }}>
+        <p
+          className="text-xs"
+          style={{ color: hintColor ?? "var(--text-subtle)" }}
+        >
           {hint}
         </p>
       ) : null}

@@ -9,17 +9,12 @@ import t from "../../i18n";
 import {
   BellIcon,
   GlobeIcon,
-  MenuIcon,
   MoonIcon,
   SearchIcon,
   SunIcon,
   TagIcon,
   ClockIcon,
 } from "../icons";
-
-interface TopNavbarProps {
-  onOpenMenu: () => void;
-}
 
 interface Notification {
   id: string;
@@ -33,7 +28,7 @@ interface SearchHit {
   label: string;
 }
 
-export function TopNavbar({ onOpenMenu }: TopNavbarProps) {
+export function TopNavbar() {
   const navigate = useNavigate();
   const { language, toggleLanguage } = useLanguage();
   const { theme, toggleTheme } = useTheme();
@@ -45,7 +40,7 @@ export function TopNavbar({ onOpenMenu }: TopNavbarProps) {
     pausedSessions,
     elapsedMs,
     todayTrackedMs,
-    dailyGoalHours,
+    overtime,
   } = useTracker();
 
   const [query, setQuery] = useState("");
@@ -57,7 +52,7 @@ export function TopNavbar({ onOpenMenu }: TopNavbarProps) {
 
   const notifications = useMemo<Notification[]>(() => {
     const items: Notification[] = [];
-    const goalMs = dailyGoalHours * 3_600_000;
+    const goalMs = overtime.today.targetMs;
 
     if (goalMs > 0) {
       if (todayTrackedMs >= goalMs) {
@@ -97,7 +92,7 @@ export function TopNavbar({ onOpenMenu }: TopNavbarProps) {
 
     return items.filter((item) => !dismissed.has(item.id));
   }, [
-    dailyGoalHours,
+    overtime.today.targetMs,
     todayTrackedMs,
     activeSession,
     elapsedMs,
@@ -143,14 +138,14 @@ export function TopNavbar({ onOpenMenu }: TopNavbarProps) {
         backdropFilter: "blur(10px)",
       }}
     >
-      <button
-        type="button"
-        onClick={onOpenMenu}
-        className="ghost-button lg:hidden"
-        aria-label={t("openMenu", language)}
+      {/* Brand (mobile only – the sidebar shows it on desktop) */}
+      <span
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white lg:hidden"
+        style={{ background: "var(--primary)" }}
+        aria-hidden
       >
-        <MenuIcon className="h-5 w-5" />
-      </button>
+        <ClockIcon className="h-5 w-5" />
+      </span>
 
       {/* Search */}
       <div className="relative w-full max-w-md">
@@ -230,7 +225,7 @@ export function TopNavbar({ onOpenMenu }: TopNavbarProps) {
         <button
           type="button"
           onClick={toggleLanguage}
-          className="ghost-button"
+          className="ghost-button hidden sm:inline-flex"
           aria-label={t("languageSection", language)}
           title={language === "en" ? "EN" : "DE"}
         >
@@ -243,7 +238,7 @@ export function TopNavbar({ onOpenMenu }: TopNavbarProps) {
         <button
           type="button"
           onClick={toggleTheme}
-          className="ghost-button"
+          className="ghost-button hidden sm:inline-flex"
           aria-label={
             theme === "dark"
               ? t("lightMode", language)

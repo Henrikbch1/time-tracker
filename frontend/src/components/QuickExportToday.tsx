@@ -140,7 +140,9 @@ export function QuickExportToday({
                   onClick={handleCopy}
                   aria-live="polite"
                 >
-                  {copied ? "✓ " + t("saved", language) : "Copy"}
+                  {copied
+                    ? "✓ " + t("copied", language)
+                    : t("copyAll", language)}
                 </button>
                 <button
                   type="button"

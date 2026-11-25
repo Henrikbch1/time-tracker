@@ -256,11 +256,16 @@ function resolveTagNameForExport(
   );
 }
 
-function formatDurationForExport(
+export function formatDurationForExport(
   durationMs: number,
   format: "HH:MM" | "H.H" | "minutes",
+  language: Language = "en",
 ): string {
-  return formatDurationFlexible(durationMs, format);
+  const value = formatDurationFlexible(durationMs, format);
+  // German spreadsheets expect a decimal comma (1,25 instead of 1.25).
+  return format === "H.H" && language === "de"
+    ? value.replace(".", ",")
+    : value;
 }
 
 interface GroupedTask {
@@ -295,6 +300,7 @@ function exportFormattedAsTextBlock(
     const duration = formatDurationForExport(
       group.roundedDurationMs,
       exportConfig.timeFormat,
+      language,
     );
     if (line) line += ": ";
     line += duration;
@@ -339,6 +345,7 @@ function exportFormattedAsTable(
     const duration = formatDurationForExport(
       group.roundedDurationMs,
       exportConfig.timeFormat,
+      language,
     );
     rowParts.push(duration);
 

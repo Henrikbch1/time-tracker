@@ -1,19 +1,8 @@
 import { NavLink } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext";
 import t from "../../i18n";
-import {
-  ChartIcon,
-  ClockIcon,
-  CloseIcon,
-  DashboardIcon,
-  SettingsIcon,
-} from "../icons";
+import { ChartIcon, ClockIcon, DashboardIcon, SettingsIcon } from "../icons";
 import type { Key } from "../../i18n";
-
-interface SidebarProps {
-  open: boolean;
-  onClose: () => void;
-}
 
 interface NavItem {
   to: string;
@@ -21,33 +10,21 @@ interface NavItem {
   Icon: (props: { className?: string }) => React.ReactElement;
 }
 
-const NAV_ITEMS: NavItem[] = [
+// eslint-disable-next-line react-refresh/only-export-components
+export const NAV_ITEMS: NavItem[] = [
   { to: "/", labelKey: "navDashboard", Icon: DashboardIcon },
   { to: "/track", labelKey: "navTracking", Icon: ClockIcon },
   { to: "/reports", labelKey: "navReports", Icon: ChartIcon },
   { to: "/settings", labelKey: "navSettings", Icon: SettingsIcon },
 ];
 
-export function Sidebar({ open, onClose }: SidebarProps) {
+export function Sidebar() {
   const { language } = useLanguage();
 
   return (
     <>
-      {/* Mobile backdrop */}
-      <button
-        type="button"
-        aria-hidden={!open}
-        tabIndex={-1}
-        onClick={onClose}
-        className={`fixed inset-0 z-30 bg-slate-900/40 backdrop-blur-sm transition-opacity lg:hidden ${
-          open ? "opacity-100" : "pointer-events-none opacity-0"
-        }`}
-      />
-
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-[264px] flex-col border-r px-4 py-5 transition-transform duration-200 lg:translate-x-0 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className="fixed inset-y-0 left-0 z-40 hidden w-[264px] flex-col border-r px-4 py-5 lg:flex"
         style={{
           background: "var(--surface)",
           borderColor: "var(--border)",
@@ -76,25 +53,11 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="ghost-button lg:hidden"
-            aria-label={t("closeMenu", language)}
-          >
-            <CloseIcon className="h-5 w-5" />
-          </button>
         </div>
 
         <nav className="mt-7 flex flex-1 flex-col gap-1">
           {NAV_ITEMS.map(({ to, labelKey, Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === "/"}
-              onClick={onClose}
-              className="sidebar-link"
-            >
+            <NavLink key={to} to={to} end={to === "/"} className="sidebar-link">
               {({ isActive }) => (
                 <span
                   className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition"

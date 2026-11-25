@@ -62,7 +62,7 @@ export function HistoryPanel({
   title,
   subtitle,
 }: HistoryPanelProps) {
-  const { roundingConfig } = useTracker();
+  const { roundingConfig, handleDeleteHistoryEntry } = useTracker();
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [editStartInput, setEditStartInput] = useState("");
   const [editDurationInput, setEditDurationInput] = useState("");
@@ -285,6 +285,21 @@ export function HistoryPanel({
                       className="action-button"
                     >
                       {t("closeLabel", language)}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (
+                          !globalThis.confirm(t("confirmDeleteEntry", language))
+                        )
+                          return;
+                        handleDeleteHistoryEntry(entry.id);
+                        handleCancelEdit();
+                      }}
+                      className="ghost-button ml-auto"
+                      style={{ color: "var(--danger)" }}
+                    >
+                      {t("deleteEntry", language)}
                     </button>
                   </div>
                 </form>
