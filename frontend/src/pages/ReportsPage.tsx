@@ -8,7 +8,9 @@ import {
 import { ExportMenu } from "../components/ExportMenu";
 import { QuickExportToday } from "../components/QuickExportToday";
 import KpiCard from "../components/KpiCard";
+import OvertimeTable from "../components/OvertimeTable";
 import { formatDuration } from "../lib/time";
+import { formatHM } from "../lib/overtime";
 import {
   colorByIndex,
   dailyTrend,
@@ -74,25 +76,27 @@ export default function ReportsPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 [&>*:first-child]:col-span-2 lg:[&>*:first-child]:col-span-1">
         <KpiCard
           label={t("kpiTotalTracked", language)}
-          value={formatDuration(totalTrackedMs)}
+          value={formatHM(totalTrackedMs)}
           icon={<ClockIcon className="h-5 w-5" />}
         />
         <KpiCard
           label={t("kpiWeek", language)}
-          value={formatDuration(weekTrackedMs)}
+          value={formatHM(weekTrackedMs)}
           icon={<ChartIcon className="h-5 w-5" />}
           accent="var(--accent)"
         />
         <KpiCard
           label={t("kpiMonth", language)}
-          value={formatDuration(monthTrackedMs)}
+          value={formatHM(monthTrackedMs)}
           icon={<ChartIcon className="h-5 w-5" />}
           accent="#8b5cf6"
         />
       </div>
+
+      <OvertimeTable />
 
       <section className="surface p-5">
         <div className="mb-3">

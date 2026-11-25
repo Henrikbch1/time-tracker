@@ -499,3 +499,24 @@ export function writeFavorites(favorites: string[]) {
     COOKIE_WRITE_OPTIONS,
   );
 }
+
+const OVERTIME_CARRY_OVER_KEY = "hookie.overtimeCarryOverMinutes";
+
+/** Manual overtime balance (minutes) carried over from before tracking started. */
+export function readOvertimeCarryOver(): number {
+  try {
+    const raw = window.localStorage.getItem(OVERTIME_CARRY_OVER_KEY);
+    const value = raw == null ? 0 : Number(raw);
+    return Number.isFinite(value) ? value : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function writeOvertimeCarryOver(minutes: number) {
+  try {
+    window.localStorage.setItem(OVERTIME_CARRY_OVER_KEY, String(minutes));
+  } catch {
+    // ignore storage errors (private mode, quota)
+  }
+}

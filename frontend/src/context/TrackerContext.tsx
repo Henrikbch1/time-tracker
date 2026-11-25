@@ -21,6 +21,8 @@ import {
   writeRoundingConfig,
   readExportConfig,
   writeExportConfig,
+  readOvertimeCarryOver,
+  writeOvertimeCarryOver,
   type ActiveSession,
   type HistoryEntry,
   type Tag,
@@ -43,6 +45,7 @@ import {
   startOfWeek,
   type RoundedTaskDaySegment,
 } from "../lib/stats";
+import { computeOvertime, type OvertimeSummary } from "../lib/overtime";
 import t from "../i18n";
 
 type WorkdaysMap = Record<
@@ -79,6 +82,13 @@ interface TrackerContextValue {
   totalsByTaskToday: Record<string, number>;
   completedToday: number;
   latestEntry: HistoryEntry | null;
+  overtime: OvertimeSummary;
+  carryOverMinutes: number;
+  setCarryOverMinutes: (minutes: number) => void;
+  lastStoppedEntry: HistoryEntry | null;
+  undoLastStop: () => void;
+  dismissLastStop: () => void;
+  handleDeleteHistoryEntry: (entryId: string) => void;
   favorites: string[];
   toggleFavorite: (taskName: string) => void;
   isFavorite: (taskName: string) => boolean;
@@ -116,7 +126,7 @@ function getInitialState() {
   const activeSession = alreadyCompleted ? null : restoredSession;
 
   return {
-    taskName: activeSession?.taskName ?? "",
+    taskName: "",
     activeSession,
     pausedSessions: restoredPaused,
     history,
@@ -126,6 +136,7 @@ function getInitialState() {
     workdays: readWorkdays(),
     roundingConfig: readRoundingConfig(),
     exportConfig: readExportConfig(),
+    carryOverMinutes: readOvertimeCarryOver(),
     now: Date.now(),
   };
 }
@@ -204,6 +215,17 @@ export function TrackerProvider({
   const [exportConfig, setExportConfig] = useState<ExportConfig>(
     initial.exportConfig,
   );
+
+  const [carryOverMinutes, setCarryOverMinutes] = useState<number>(
+    initial.carryOverMinutes,
+  );
+  const [lastStoppedEntry, setLastStoppedEntry] = useState<HistoryEntry | null>(
+    null,
+  );
+
+  useEffect(() => {
+    writeOvertimeCarryOver(carryOverMinutes);
+  }, [carryOverMinutes]);
 
   useEffect(() => {
     if (activeSession) {
@@ -324,7 +346,7 @@ export function TrackerProvider({
 
   const weekTrackedMs = useMemo(() => {
     const weekStart = startOfWeek(now);
-    let total = visibleRoundedGroups.reduce((acc, group) => {
+    const total = visibleRoundedGroups.reduce((acc, group) => {
       if (group.dayTimestamp < weekStart || group.dayTimestamp >= now + 1) {
         return acc;
       }
@@ -335,7 +357,7 @@ export function TrackerProvider({
 
   const monthTrackedMs = useMemo(() => {
     const monthStart = startOfMonth(now);
-    let total = visibleRoundedGroups.reduce((acc, group) => {
+    const total = visibleRoundedGroups.reduce((acc, group) => {
       if (group.dayTimestamp < monthStart || group.dayTimestamp >= now + 1) {
         return acc;
       }
@@ -343,6 +365,19 @@ export function TrackerProvider({
     }, 0);
     return total;
   }, [visibleRoundedGroups, now]);
+
+  const overtime = useMemo(() => {
+    const byDay: Record<string, { ms: number; dayTimestamp: number }> = {};
+    for (const group of visibleRoundedGroups) {
+      const current = byDay[group.dayKey] ?? {
+        ms: 0,
+        dayTimestamp: group.dayTimestamp,
+      };
+      current.ms += group.roundedDurationMs;
+      byDay[group.dayKey] = current;
+    }
+    return computeOvertime(byDay, workdays, now, carryOverMinutes * 60_000);
+  }, [visibleRoundedGroups, workdays, now, carryOverMinutes]);
 
   const toggleFavorite = useCallback((taskName: string) => {
     const normalized = taskName.trim();
@@ -463,6 +498,7 @@ export function TrackerProvider({
       tagId: activeSession.tagId,
     };
     setHistory((h) => [nextEntry, ...h]);
+    setLastStoppedEntry(nextEntry);
     setActiveSession(null);
     setTaskName("");
     setNow(endTimestamp);
@@ -486,6 +522,7 @@ export function TrackerProvider({
       };
 
       setHistory((prev) => [nextEntry, ...prev]);
+      setLastStoppedEntry(nextEntry);
       setPausedSessions((prev) =>
         prev.filter((session) => session.sessionId !== sessionId),
       );
@@ -493,6 +530,34 @@ export function TrackerProvider({
     },
     [pausedSessions],
   );
+
+  const undoLastStop = useCallback(() => {
+    const entry = lastStoppedEntry;
+    if (!entry) return;
+    const resumedAt = Date.now();
+    setHistory((prev) => prev.filter((item) => item.id !== entry.id));
+    // Put the stopped session back as a paused session so no time is lost.
+    setPausedSessions((prev) => [
+      {
+        sessionId: `${entry.startTimestamp}-undo`,
+        taskName: entry.taskName,
+        createdTimestamp: entry.startTimestamp,
+        accumulatedMs: entry.durationMs,
+        isPaused: true,
+        pausedAtTimestamp: resumedAt,
+        tagId: entry.tagId,
+      },
+      ...prev,
+    ]);
+    setLastStoppedEntry(null);
+    setNow(resumedAt);
+  }, [lastStoppedEntry]);
+
+  const dismissLastStop = useCallback(() => setLastStoppedEntry(null), []);
+
+  const handleDeleteHistoryEntry = useCallback((entryId: string) => {
+    setHistory((prev) => prev.filter((entry) => entry.id !== entryId));
+  }, []);
 
   const handleExport = useCallback(() => {
     if (history.length === 0) return;
@@ -562,6 +627,13 @@ export function TrackerProvider({
       totalsByTaskToday,
       completedToday,
       latestEntry,
+      overtime,
+      carryOverMinutes,
+      setCarryOverMinutes,
+      lastStoppedEntry,
+      undoLastStop,
+      dismissLastStop,
+      handleDeleteHistoryEntry,
       favorites,
       toggleFavorite,
       isFavorite,
@@ -597,6 +669,13 @@ export function TrackerProvider({
       totalsByTaskToday,
       completedToday,
       latestEntry,
+      overtime,
+      carryOverMinutes,
+      setCarryOverMinutes,
+      lastStoppedEntry,
+      undoLastStop,
+      dismissLastStop,
+      handleDeleteHistoryEntry,
       favorites,
       toggleFavorite,
       isFavorite,

@@ -181,3 +181,36 @@ export function TagIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function CopyIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+    </svg>
+  );
+}
+
+export function CheckIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M5 12.5l4.5 4.5L19 7.5" />
+    </svg>
+  );
+}
+
+export function BalanceIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 4v16M5 8h14M7 8l-3 6a3 3 0 0 0 6 0L7 8zM17 8l-3 6a3 3 0 0 0 6 0l-3-6zM8 20h8" />
+    </svg>
+  );
+}
+
+export function TrashIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
+    </svg>
+  );
+}
