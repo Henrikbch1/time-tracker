@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hookie | TimeTracker</title>
+    <script>
+      // Legacy deep links like /time-tracker/track → /time-tracker/#/track
+      (function () {
+        var base = "/time-tracker";
+        var l = window.location;
+        var path = l.pathname.indexOf(base) === 0 ? l.pathname.slice(base.length) : l.pathname;
+        path = path.replace(/\/+$/, "");
+        l.replace(base + "/#" + (path || "/") + l.search);
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>
